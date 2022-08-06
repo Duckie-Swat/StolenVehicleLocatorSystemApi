@@ -7,10 +7,9 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 {
     public interface IAuthService
     {
-        Task<UserDetailDto> Register(RegisterUserDto newUser);
+        Task<RegisterUserResponseDto> Register(RegisterUserDto newUser);
 
-        Task Login(LoginUserDto loginUser);
+        Task<LoginResponseDto> Login(LoginUserDto loginUser);
 
-        JwtSecurityToken GetToken(List<Claim> authClaims, string secretKey);
     }
 }

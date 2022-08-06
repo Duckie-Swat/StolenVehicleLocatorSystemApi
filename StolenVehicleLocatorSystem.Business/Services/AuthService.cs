@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using IdentityModel;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using StolenVehicleLocatorSystem.Business.Interfaces;
@@ -20,24 +21,29 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
         private readonly SignInManager<User> _signInManager;
+        private readonly IConfiguration _configuration;
 
         public AuthService(UserManager<User> userManager,
             RoleManager<Role> roleManager, IMapper mapper,
-            ILogger<AuthService> logger, SignInManager<User> signInManager)
+            ILogger<AuthService> logger, SignInManager<User> signInManager,
+            IConfiguration configuration
+            )
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _mapper = mapper;
             _logger = logger;
             _signInManager = signInManager;
+            _configuration = configuration;
         }
 
-        public JwtSecurityToken GetToken(List<Claim> authClaims, string secretKey)
+        private JwtSecurityToken GetToken(List<Claim> authClaims, string secretKey)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
             var token = new JwtSecurityToken(
-                expires: DateTime.Now.AddHours(3),
+                notBefore: DateTime.UtcNow,
+                expires: DateTime.UtcNow.AddSeconds(60),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
@@ -45,14 +51,43 @@ namespace StolenVehicleLocatorSystem.Business.Services
             return token;
         }
 
-        public async Task Login(LoginUserDto loginUser)
+
+
+        public async Task<LoginResponseDto> Login(LoginUserDto loginUser)
         {
-            var user = _mapper.Map<User>(loginUser);
-            var tmp = await _signInManager.CanSignInAsync(user);
-            var test = 1;
+            var user = await _userManager.FindByEmailAsync(loginUser.Email);
+            if (user != null && await _userManager.CheckPasswordAsync(user, loginUser.Password))
+            {
+                var userRoles = await _userManager.GetRolesAsync(user);
+
+                var authClaims = new List<Claim>
+                {
+                    new Claim(JwtClaimTypes.Email, user.Email),
+                    new Claim(JwtClaimTypes.IssuedAt, DateTime.UtcNow.ToString())
+                };
+                foreach (var userRole in userRoles)
+                {
+                    authClaims.Add(new Claim(JwtClaimTypes.Role, userRole));
+                }
+                var jwtSecurityToken = GetToken(authClaims, _configuration["Jwt:Secret"]);
+                string token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                user.AddUserToken(new IdentityUserToken<Guid>
+                {
+                    LoginProvider = "Local",
+                    UserId = user.Id,
+                    Value = token.ToString()
+                });
+                _userManager.UpdateAsync(user);
+                return new LoginResponseDto
+                {
+                    Token = token,
+                    Expiration = jwtSecurityToken.ValidTo
+                };
+            }
+            return null;
         }
 
-        public async Task<UserDetailDto> Register(RegisterUserDto newUser)
+        public async Task<RegisterUserResponseDto> Register(RegisterUserDto newUser)
         {
             string role = "Customer";
             var userCheck = await _userManager.FindByEmailAsync(newUser.Email);
@@ -69,24 +104,42 @@ namespace StolenVehicleLocatorSystem.Business.Services
             }
             else
             {
+
                 var user = _mapper.Map<User>(newUser);
-                user.PhoneNumberConfirmed = user.EmailConfirmed = true;
                 user.UserName = user.NormalizedUserName = user.Email;
+                var newUserResult = await _userManager.CreateAsync(user, newUser.Password);
+                List<string> errors = new();
+                if (newUserResult.Errors.Any())
+                {
+                    foreach (var error in newUserResult.Errors)
+                    {
+                        errors.Add(error.Description);
+                    }
+                    return new RegisterUserResponseDto
+                    {
+                        Data = null,
+                        Errors = errors
+                    };
+                }
 
-                var result = await _userManager.CreateAsync(user, newUser.Password);
-
-                result = _userManager.AddToRoleAsync(user, role).Result;
-
-                result = await
-                _userManager.AddClaimsAsync(
+                var results = await Task.WhenAll(new[]
+                {
+                  _userManager.AddToRoleAsync(user, role),
+                   _userManager.AddClaimsAsync(
                     user,
                     new Claim[]
                     {
                             new Claim(JwtClaimTypes.Email, user.Email),
                             new Claim(JwtClaimTypes.Role, role)
                     }
-                );
-                return _mapper.Map<UserDetailDto>(user);
+                )});
+
+                return new RegisterUserResponseDto
+                {
+                    Data = _mapper.Map<UserDetailDto>(user),
+                    Errors = null
+                };
+
             }
         }
     }

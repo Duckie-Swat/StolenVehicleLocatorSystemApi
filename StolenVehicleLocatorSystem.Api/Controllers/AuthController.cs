@@ -15,20 +15,16 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly IAuthService _authService;
-        private readonly IConfiguration _configuration;
-        private readonly UserManager<User> _userManager;
+
 
 
         public AuthController(ILogger<AuthController> logger,
-            IAuthService authService,
-            UserManager<User> userManager,
-            IConfiguration configuration
+            IAuthService authService
             )
         {
             _logger = logger;
             _authService = authService;
-            _userManager = userManager;
-            _configuration = configuration;
+
         }
 
         [HttpPost("Signup")]
@@ -36,32 +32,21 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         {
             _logger.LogInformation("Create user");
             var result = await _authService.Register(newUser);
+            if (result == null)
+            {
+                return BadRequest();
+            }
             return Created($"{Endpoints.Auth}/Signup", result);
         }
 
         [HttpPost("Signin")]
-        public async Task<IActionResult> CreateUserAsync(LoginUserDto loginUser)
+        public async Task<IActionResult> SigninAsync(LoginUserDto loginUser)
         {
             _logger.LogInformation("User login");
-            var user = await _userManager.FindByEmailAsync(loginUser.Email);
-            if (user != null && await _userManager.CheckPasswordAsync(user, loginUser.Password))
+            LoginResponseDto response = await _authService.Login(loginUser);
+            if (response != null)
             {
-                var userRoles = await _userManager.GetRolesAsync(user);
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
-                }
-                var token = _authService.GetToken(authClaims, _configuration["Jwt:Secret"]);
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
-                });
+                return Ok(response);
             }
             return Unauthorized();
         }
