@@ -4,10 +4,10 @@
     {
         public Guid Id { get; set; }
 
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
 
 
-        public DateTime UpdatedDate { get; set; }
+        public DateTime UpdatedOn { get; set; }
 
 
         public Guid? CreatedBy { get; set; }

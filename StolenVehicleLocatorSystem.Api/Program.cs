@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StolenVehicleLocatorSystem.Api.Validators;
 using StolenVehicleLocatorSystem.Business;
 using StolenVehicleLocatorSystem.DataAccessor;
 using System.Text;
@@ -9,10 +10,13 @@ namespace StolenVehicleLocatorSystemApi
 {
     public class Program
     {
+
+
         public async static Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
             string AllOrigins = "AllowAllOrigins";
+            var configuration = builder.Configuration;
             // Add services to the container.
 
 
@@ -25,9 +29,17 @@ namespace StolenVehicleLocatorSystemApi
             });
 
             // Add Business layer
-            builder.Services.AddBusinessLayer(builder.Configuration);
+            builder.Services.AddBusinessLayer(configuration);
 
             // Adding Authentication
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                //...your setting
+
+                // set ClockSkew is zero
+                ClockSkew = TimeSpan.Zero
+            };
+
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -42,7 +54,8 @@ namespace StolenVehicleLocatorSystemApi
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
-                    ValidateLifetime = true
+                    ValidateLifetime = true,
+                    LifetimeValidator = TokenLifetimeValidator.Validate,
                 };
             });
 
@@ -52,7 +65,7 @@ namespace StolenVehicleLocatorSystemApi
             // Cors
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(name: AllOrigins,
+                options.AddPolicy(AllOrigins,
                                   builder =>
                                   {
                                       builder.AllowAnyOrigin()
@@ -62,55 +75,47 @@ namespace StolenVehicleLocatorSystemApi
             });
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
              {
-                 c.SwaggerDoc("v1", new OpenApiInfo
+
+                 c.SwaggerDoc(configuration["Swagger:SwaggerDoc:Version"], new OpenApiInfo
                  {
-                     Title = "MetaShop Api",
-                     Version = "v1"
+                     Title = configuration["Swagger:SwaggerDoc:Title"],
+                     Version = configuration["Swagger:SwaggerDoc:Version"]
                  });
 
                  c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                  {
-                     Description = @"JWT Authorization header using the Bearer scheme. \r\n\r\n 
-                      Enter 'Bearer' [space] and then your token in the text input below.
-                      \r\n\r\nExample: 'Bearer 12345abcdef'",
-                     Name = "Authorization",
+                     Description = configuration["Swagger:SecurityDefinition:Description"],
+                     Name = configuration["Swagger:SecurityDefinition:Name"],
                      In = ParameterLocation.Header,
                      Type = SecuritySchemeType.ApiKey,
-                     Scheme = "Bearer"
+                     Scheme = configuration["Swagger:SecurityDefinition:Scheme"]
                  });
-                 c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-      {
-        {
-          new OpenApiSecurityScheme
-          {
-            Reference = new OpenApiReference
-              {
-                Type = ReferenceType.SecurityScheme,
-                Id = "Bearer"
-              },
-              Scheme = "oauth2",
-              Name = "Bearer",
-              In = ParameterLocation.Header,
-
-            },
-            new List<string>()
-          }
-        });
+                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                   {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                            },
+                            new List<string>{ "openid profile identity api" }
+                        }
+                    });
              });
-                 var app = builder.Build();
+            var app = builder.Build();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                app.UseDeveloperExceptionPage();
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthentication();
             app.UseAuthorization();
 
