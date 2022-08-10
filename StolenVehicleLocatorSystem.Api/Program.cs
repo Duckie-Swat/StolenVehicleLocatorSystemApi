@@ -1,3 +1,4 @@
+using IdentityModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -6,18 +7,23 @@ using StolenVehicleLocatorSystem.Business;
 using StolenVehicleLocatorSystem.DataAccessor;
 using System.Text;
 
-namespace StolenVehicleLocatorSystemApi
+namespace StolenVehicleLocatorSystem.Api
 {
     public class Program
     {
-
-
-        public async static Task Main(string[] args)
+        public static Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
             string AllOrigins = "AllowAllOrigins";
             var configuration = builder.Configuration;
-            // Add services to the container.
+            // Add Business layer
+            builder.Services.AddBusinessLayer(configuration);
+
+            if (args.Contains("/seed-data"))
+            {
+                SeedData.EnsureSeedData(builder.Services);
+            }
 
 
             builder.Services.AddControllers().AddJsonOptions(opt =>
@@ -28,39 +34,36 @@ namespace StolenVehicleLocatorSystemApi
                 serializerOptions.WriteIndented = true;
             });
 
-            // Add Business layer
-            builder.Services.AddBusinessLayer(configuration);
+
 
             // Adding Authentication
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                //...your setting
-
-                // set ClockSkew is zero
-                ClockSkew = TimeSpan.Zero
-            };
-
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
+            })
+
+            // Adding Jwt Bearer
+            .AddJwtBearer(options =>
             {
                 options.SaveToken = true;
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"])),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
                     ValidateLifetime = true,
-                    LifetimeValidator = TokenLifetimeValidator.Validate,
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero,
+
+                    ValidAudience = configuration["JWT:ValidAudience"],
+                    ValidIssuer = configuration["JWT:ValidIssuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]))
                 };
             });
 
-            // Seed Data
-            await SeedData.EnsureSeedData(builder.Services);
+
 
             // Cors
             builder.Services.AddCors(options =>
@@ -123,7 +126,7 @@ namespace StolenVehicleLocatorSystemApi
             app.MapControllers();
 
             app.Run();
+            return Task.CompletedTask;
         }
-
     }
 }

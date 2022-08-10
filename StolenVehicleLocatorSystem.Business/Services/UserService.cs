@@ -2,11 +2,13 @@
 using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using StolenVehicleLocatorSystem.Business.Extensions;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
-using StolenVehicleLocatorSystem.DataAccessor.Models;
+using StolenVehicleLocatorSystem.Contracts.Filters;
+using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.Security.Claims;
 
 
@@ -19,14 +21,17 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
 
+
         public UserService(UserManager<User> userManager,
             RoleManager<Role> roleManager, IMapper mapper,
-            ILogger<UserService> logger)
+            ILogger<UserService> logger
+            )
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _mapper = mapper;
             _logger = logger;
+
         }
 
         public Task<int> CountAsync()
@@ -39,9 +44,17 @@ namespace StolenVehicleLocatorSystem.Business.Services
             throw new NotImplementedException();
         }
 
-        public Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(string username, int page, int limit)
+        public async Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filters)
         {
-            throw new NotImplementedException();
+            var query = _userManager.Users;
+            var res = await query.PaginateAsync(filters.Page, filters.Limit);
+            return new PagedResponseModel<UserDetailDto>
+            {
+                CurrentPage = filters.Page,
+                TotalItems = res.TotalItems,
+                Items = _mapper.Map<IEnumerable<UserDetailDto>>(res.Items),
+                TotalPages = res.TotalPages
+            };
         }
 
         public async Task<UserDetailDto> Register(RegisterUserDto newUser, string role)
@@ -62,7 +75,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             {
                 var user = _mapper.Map<User>(newUser);
                 user.PhoneNumberConfirmed = user.EmailConfirmed = true;
-                user.UserName = user.NormalizedUserName = user.Email;
+                user.UserName = user.Email;
 
                 var result = await _userManager.CreateAsync(user, newUser.Password);
 
@@ -81,4 +94,5 @@ namespace StolenVehicleLocatorSystem.Business.Services
             }
         }
     }
+
 }

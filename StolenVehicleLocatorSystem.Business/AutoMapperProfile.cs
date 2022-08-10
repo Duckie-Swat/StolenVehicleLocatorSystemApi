@@ -1,6 +1,6 @@
 ﻿using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
-using StolenVehicleLocatorSystem.DataAccessor.Models;
+using StolenVehicleLocatorSystem.DataAccessor.Entities;
 
 namespace StolenVehicleLocatorSystem.Business
 {

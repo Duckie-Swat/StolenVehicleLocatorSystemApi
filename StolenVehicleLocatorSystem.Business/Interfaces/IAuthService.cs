@@ -1,6 +1,4 @@
 ﻿using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
-using StolenVehicleLocatorSystem.Contracts.Dtos.User;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace StolenVehicleLocatorSystem.Business.Interfaces
@@ -11,5 +9,10 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 
         Task<LoginResponseDto> Login(LoginUserDto loginUser);
 
+        ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token);
+
+        Task<object> UpdateToken(string email, string oldRefreshToken, ClaimsPrincipal claimsPrincipal);
+
+        Task<bool> RevokeToken(Guid userId);
     }
 }

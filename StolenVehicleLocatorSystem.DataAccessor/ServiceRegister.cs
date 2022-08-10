@@ -1,28 +1,28 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using StolenVehicleLocatorSystem.DataAccessor.Context;
+using StolenVehicleLocatorSystem.DataAccessor.Data;
+using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using StolenVehicleLocatorSystem.DataAccessor.Interfaces;
-using StolenVehicleLocatorSystem.DataAccessor.Models;
-using StolenVehicleLocatorSystem.DataAccessor.Repository;
+using StolenVehicleLocatorSystem.DataAccessor.Repositories;
 
-namespace StolenVehicleLocatorSystem.DataAccessor
+namespace StolenVehicleLocatorSystem.DataAccessor;
+
+public static class ServiceRegister
 {
-    public static class ServiceRegister
+    public static void AddDataAccessLayer(this IServiceCollection services, IConfiguration configuration)
     {
-        public static void AddDataAccessorLayer(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddSingleton<IMongoContext, MongoContext>();
-            services.AddSingleton<IUserRepository, UserRepository>();
-
-            var mongoDbSettings = configuration.GetSection(nameof(MongoSettings)).Get<MongoSettings>();
-            services.AddIdentity<User, Role>()
-            .AddMongoDbStores<User, Role, Guid>
-            (
-                mongoDbSettings.ConnectionString, mongoDbSettings.DatabaseName
-            )
+        // For Entity Framework  
+        services
+            .AddDbContext<ApplicationDbContext>(options =>
+            //options.UseSqlServer(configuration.GetConnectionString("SqlServer")));
+            options.UseNpgsql(configuration.GetConnectionString("PostgreSQL")));
+        // For Identity  
+        services.AddIdentity<User, Role>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        }
+        services.AddSingleton(typeof(IBaseRepository<>), typeof(BaseRepository<>));
     }
 }

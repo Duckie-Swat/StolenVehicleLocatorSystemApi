@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Rookie.Ecom.MetaShop.Contracts.Constants;
+﻿using Microsoft.AspNetCore.Mvc;
+using StolenVehicleLocatorSystem.Contracts.Constants;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
-using StolenVehicleLocatorSystem.DataAccessor.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using StolenVehicleLocatorSystem.Contracts.Dtos;
+using IdentityModel;
+using Microsoft.AspNetCore.Authorization;
 
 namespace StolenVehicleLocatorSystem.Api.Controllers
 {
@@ -15,7 +14,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly IAuthService _authService;
-
 
 
         public AuthController(ILogger<AuthController> logger,
@@ -44,11 +42,45 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         {
             _logger.LogInformation("User login");
             LoginResponseDto response = await _authService.Login(loginUser);
-            if (response != null)
+            return response != null ? Ok(response) : Unauthorized();
+
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken(TokenModel tokenModel)
+        {
+            if (tokenModel is null)
             {
-                return Ok(response);
+                return BadRequest("Invalid client request");
             }
-            return Unauthorized();
+
+            string? accessToken = tokenModel.AccessToken;
+            string? refreshToken = tokenModel.RefreshToken;
+
+            var principal = _authService.GetPrincipalFromExpiredToken(accessToken);
+            if (principal == null)
+            {
+                return BadRequest("Invalid access token or refresh token");
+            }
+            string email = principal.Claims.FirstOrDefault(p => p.Type == JwtClaimTypes.Email).Value;
+            try
+            {
+                var result = await _authService.UpdateToken(email, refreshToken, principal);
+                return new ObjectResult(result);
+            }
+            catch (Exception)
+            {
+
+                return BadRequest("Invalid access token or refresh token");
+            }
+        }
+
+        [Authorize]
+        [HttpPost("revoke/{UserId}")]
+        public async Task<IActionResult> Revoke(Guid userId)
+        {
+            var result = await _authService.RevokeToken(userId);
+            return result ? NoContent() : BadRequest("Invalid userId");
         }
     }
 }

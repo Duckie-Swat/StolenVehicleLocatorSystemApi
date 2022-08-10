@@ -1,6 +1,7 @@
 ﻿using StolenVehicleLocatorSystem.Contracts;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
+using StolenVehicleLocatorSystem.Contracts.Filters;
 
 namespace StolenVehicleLocatorSystem.Business.Interfaces
 {
@@ -10,7 +11,7 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 
         Task<UserDetailDto> GetById(string id);
 
-        Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(string username, int page, int limit);
+        Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filters);
 
         Task<int> CountAsync();
     }

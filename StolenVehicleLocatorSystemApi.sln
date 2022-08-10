@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StolenVehicleLocatorSystem.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StolenVehicleLocatorSystem.Business", "StolenVehicleLocatorSystem.Business\StolenVehicleLocatorSystem.Business.csproj", "{05B64540-3B72-43C8-AD6F-575C48F676C9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StolenVehicleLocatorSystem.DataAccessor", "StolenVehicleLocatorSystem.DataAccessor\StolenVehicleLocatorSystem.DataAccessor.csproj", "{B360D669-CABD-469A-B68D-9103A7E2F118}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StolenVehicleLocatorSystem.Api", "StolenVehicleLocatorSystem.Api\StolenVehicleLocatorSystem.Api.csproj", "{33A1F74E-E9E5-49AE-B430-CCA5629F060F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StolenVehicleLocatorSystem.DataAccessor", "StolenVehicleLocatorSystem.DataAccessor\StolenVehicleLocatorSystem.DataAccessor.csproj", "{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,14 +25,14 @@ Global
 		{05B64540-3B72-43C8-AD6F-575C48F676C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05B64540-3B72-43C8-AD6F-575C48F676C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05B64540-3B72-43C8-AD6F-575C48F676C9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B360D669-CABD-469A-B68D-9103A7E2F118}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B360D669-CABD-469A-B68D-9103A7E2F118}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B360D669-CABD-469A-B68D-9103A7E2F118}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B360D669-CABD-469A-B68D-9103A7E2F118}.Release|Any CPU.Build.0 = Release|Any CPU
 		{33A1F74E-E9E5-49AE-B430-CCA5629F060F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{33A1F74E-E9E5-49AE-B430-CCA5629F060F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33A1F74E-E9E5-49AE-B430-CCA5629F060F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33A1F74E-E9E5-49AE-B430-CCA5629F060F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
