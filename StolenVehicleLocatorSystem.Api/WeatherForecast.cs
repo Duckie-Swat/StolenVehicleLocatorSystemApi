@@ -1,4 +1,4 @@
-namespace StolenVehicleLocatorSystemApi
+namespace StolenVehicleLocatorSystem.Api
 {
     public class WeatherForecast
     {

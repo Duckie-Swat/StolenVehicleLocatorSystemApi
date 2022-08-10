@@ -1,4 +1,4 @@
-﻿namespace Rookie.Ecom.MetaShop.Contracts.Constants
+﻿namespace StolenVehicleLocatorSystem.Contracts.Constants
 {
     public static class ValidationRules
     {

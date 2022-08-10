@@ -7,9 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
-using StolenVehicleLocatorSystem.DataAccessor.Models;
+using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace StolenVehicleLocatorSystem.Business.Services
@@ -20,12 +21,11 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly RoleManager<Role> _roleManager;
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
-        private readonly SignInManager<User> _signInManager;
         private readonly IConfiguration _configuration;
 
         public AuthService(UserManager<User> userManager,
             RoleManager<Role> roleManager, IMapper mapper,
-            ILogger<AuthService> logger, SignInManager<User> signInManager,
+            ILogger<AuthService> logger,
             IConfiguration configuration
             )
         {
@@ -33,17 +33,18 @@ namespace StolenVehicleLocatorSystem.Business.Services
             _roleManager = roleManager;
             _mapper = mapper;
             _logger = logger;
-            _signInManager = signInManager;
             _configuration = configuration;
         }
 
-        private JwtSecurityToken GetToken(List<Claim> authClaims, string secretKey)
+        private JwtSecurityToken CreateToken(List<Claim> authClaims)
         {
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+            _ = int.TryParse(_configuration["JWT:TokenValidityInMinutes"], out int tokenValidityInMinutes);
 
             var token = new JwtSecurityToken(
-                notBefore: DateTime.UtcNow,
-                expires: DateTime.UtcNow.AddSeconds(60),
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: _configuration["JWT:ValidAudience"],
+                expires: DateTime.UtcNow.AddMinutes(tokenValidityInMinutes),
                 claims: authClaims,
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                 );
@@ -51,7 +52,33 @@ namespace StolenVehicleLocatorSystem.Business.Services
             return token;
         }
 
+        private static string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
 
+        public ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])),
+                ValidateLifetime = false
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
+            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                throw new SecurityTokenException("Invalid token");
+
+            return principal;
+        }
 
         public async Task<LoginResponseDto> Login(LoginUserDto loginUser)
         {
@@ -63,26 +90,31 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 var authClaims = new List<Claim>
                 {
                     new Claim(JwtClaimTypes.Email, user.Email),
-                    new Claim(JwtClaimTypes.IssuedAt, DateTime.UtcNow.ToString())
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
                 foreach (var userRole in userRoles)
                 {
                     authClaims.Add(new Claim(JwtClaimTypes.Role, userRole));
                 }
-                var jwtSecurityToken = GetToken(authClaims, _configuration["Jwt:Secret"]);
-                string token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-                user.AddUserToken(new IdentityUserToken<Guid>
-                {
-                    LoginProvider = "Local",
-                    UserId = user.Id,
-                    Value = token.ToString()
-                });
-                _userManager.UpdateAsync(user);
+
+
+                var token = CreateToken(authClaims);
+                var refreshToken = GenerateRefreshToken();
+
+                _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
+
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
+
+                await _userManager.UpdateAsync(user);
+
                 return new LoginResponseDto
                 {
-                    Token = token,
-                    Expiration = jwtSecurityToken.ValidTo
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                    RefreshToken = refreshToken,
+                    Expiration = token.ValidTo
                 };
+
             }
             return null;
         }
@@ -99,31 +131,31 @@ namespace StolenVehicleLocatorSystem.Business.Services
             }
             else if (roleCheck == null)
             {
-                _logger.LogError("Role doesn't exist");
-                return null;
+                _ = await _roleManager.CreateAsync(new Role
+                {
+                    Name = role
+                });
             }
-            else
+
+            var user = _mapper.Map<User>(newUser);
+            user.UserName = user.Email;
+            var newUserResult = await _userManager.CreateAsync(user, newUser.Password);
+            List<string> errors = new();
+            if (newUserResult.Errors.Any())
             {
-
-                var user = _mapper.Map<User>(newUser);
-                user.UserName = user.NormalizedUserName = user.Email;
-                var newUserResult = await _userManager.CreateAsync(user, newUser.Password);
-                List<string> errors = new();
-                if (newUserResult.Errors.Any())
+                foreach (var error in newUserResult.Errors)
                 {
-                    foreach (var error in newUserResult.Errors)
-                    {
-                        errors.Add(error.Description);
-                    }
-                    return new RegisterUserResponseDto
-                    {
-                        Data = null,
-                        Errors = errors
-                    };
+                    errors.Add(error.Description);
                 }
-
-                var results = await Task.WhenAll(new[]
+                return new RegisterUserResponseDto
                 {
+                    Data = null,
+                    Errors = errors
+                };
+            }
+
+            var results = await Task.WhenAll(new[]
+            {
                   _userManager.AddToRoleAsync(user, role),
                    _userManager.AddClaimsAsync(
                     user,
@@ -134,13 +166,44 @@ namespace StolenVehicleLocatorSystem.Business.Services
                     }
                 )});
 
-                return new RegisterUserResponseDto
-                {
-                    Data = _mapper.Map<UserDetailDto>(user),
-                    Errors = null
-                };
+            return new RegisterUserResponseDto
+            {
+                Data = _mapper.Map<UserDetailDto>(user),
+                Errors = null
+            };
 
+        }
+
+        public async Task<object> UpdateToken(string email, string oldRefreshToken, ClaimsPrincipal claimsPrincipal)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null || user.RefreshToken != oldRefreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+            {
+                throw new Exception("Invalid access token or refresh token");
             }
+
+            var newAccessToken = CreateToken(claimsPrincipal.Claims.ToList());
+            var newRefreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            await _userManager.UpdateAsync(user);
+            return new
+            {
+                accessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken),
+                refreshToken = newRefreshToken
+            };
+        }
+
+        public async Task<bool> RevokeToken(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return false;
+
+            user.RefreshToken = null;
+            await _userManager.UpdateAsync(user);
+            return true;
         }
     }
 }

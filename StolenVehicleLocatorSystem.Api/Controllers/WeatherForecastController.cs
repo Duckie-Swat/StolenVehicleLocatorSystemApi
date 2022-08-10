@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace StolenVehicleLocatorSystemApi.Controllers
+namespace StolenVehicleLocatorSystem.Api.Controllers
 {
     [ApiController]
     [Authorize]

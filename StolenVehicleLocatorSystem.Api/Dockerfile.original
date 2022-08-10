@@ -7,16 +7,16 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["StolenVehicleLocatorSystemApi/StolenVehicleLocatorSystemApi.csproj", "StolenVehicleLocatorSystemApi/"]
-RUN dotnet restore "StolenVehicleLocatorSystemApi/StolenVehicleLocatorSystemApi.csproj"
+COPY ["StolenVehicleLocatorSystem.Api/StolenVehicleLocatorSystem.Api.csproj", "StolenVehicleLocatorSystem.Api/"]
+RUN dotnet restore "StolenVehicleLocatorSystem.Api/StolenVehicleLocatorSystem.Api.csproj"
 COPY . .
-WORKDIR "/src/StolenVehicleLocatorSystemApi"
-RUN dotnet build "StolenVehicleLocatorSystemApi.csproj" -c Release -o /app/build
+WORKDIR "/src/StolenVehicleLocatorSystem.Api"
+RUN dotnet build "StolenVehicleLocatorSystem.Api.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "StolenVehicleLocatorSystemApi.csproj" -c Release -o /app/publish
+RUN dotnet publish "StolenVehicleLocatorSystem.Api.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "StolenVehicleLocatorSystemApi.dll"]
+ENTRYPOINT ["dotnet", "StolenVehicleLocatorSystem.Api.dll"]
