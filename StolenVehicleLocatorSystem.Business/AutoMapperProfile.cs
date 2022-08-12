@@ -9,7 +9,6 @@ namespace StolenVehicleLocatorSystem.Business
 
         public AutoMapperProfile()
         {
-
             FromDataAccessorLayer();
             FromPresentationLayer();
         }

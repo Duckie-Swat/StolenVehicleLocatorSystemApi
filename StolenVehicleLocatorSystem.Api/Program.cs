@@ -1,8 +1,6 @@
-using IdentityModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using StolenVehicleLocatorSystem.Api.Validators;
 using StolenVehicleLocatorSystem.Business;
 using StolenVehicleLocatorSystem.DataAccessor;
 using System.Text;

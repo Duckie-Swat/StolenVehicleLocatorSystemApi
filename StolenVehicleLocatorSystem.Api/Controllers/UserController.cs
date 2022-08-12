@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using StolenVehicleLocatorSystem.Business.Interfaces;
+using StolenVehicleLocatorSystem.Contracts.Constants;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 
 namespace StolenVehicleLocatorSystem.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route(Endpoints.Users)]
     public class UserController : ControllerBase
     {
 
