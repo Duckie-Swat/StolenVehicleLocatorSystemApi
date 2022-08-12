@@ -5,6 +5,14 @@ namespace StolenVehicleLocatorSystem.Business.Extensions
 {
     public static class DataPagerExtension
     {
+        /// <summary>
+        ///  Paginate a data source
+        /// </summary>
+        /// <typeparam name="TModel"></typeparam>
+        /// <param name="query">Data source</param>
+        /// <param name="page">Page to query</param>
+        /// <param name="limit">Limit element per page</param>
+        /// <returns></returns>
         public static async Task<PagedModel<TModel>> PaginateAsync<TModel>(
             this IQueryable<TModel> query,
             int page,

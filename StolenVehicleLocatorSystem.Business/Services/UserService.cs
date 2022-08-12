@@ -44,16 +44,25 @@ namespace StolenVehicleLocatorSystem.Business.Services
             throw new NotImplementedException();
         }
 
-        public async Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filters)
+        public async Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filter)
         {
             var query = _userManager.Users;
-            var res = await query.PaginateAsync(filters.Page, filters.Limit);
+            query = query.Where(user => string.IsNullOrEmpty(filter.Keyword)
+                        || user.Id.ToString().Contains(filter.Keyword) || user.Email.Contains(filter.Keyword));
+
+            if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
+            {
+                query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
+            }
+
+
+            var users = await query.PaginateAsync(filter.Page, filter.Limit);
             return new PagedResponseModel<UserDetailDto>
             {
-                CurrentPage = filters.Page,
-                TotalItems = res.TotalItems,
-                Items = _mapper.Map<IEnumerable<UserDetailDto>>(res.Items),
-                TotalPages = res.TotalPages
+                CurrentPage = filter.Page,
+                TotalItems = users.TotalItems,
+                Items = _mapper.Map<IEnumerable<UserDetailDto>>(users.Items),
+                TotalPages = users.TotalPages
             };
         }
 

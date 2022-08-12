@@ -16,6 +16,8 @@ namespace StolenVehicleLocatorSystem.DataAccessor
         {
             var serviceProvider = serviceCollection.BuildServiceProvider();
             using var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            var ctx = scope.ServiceProvider.GetService<ApplicationDbContext>();
+            ctx.Database.Migrate();
             EnsureRoles(scope);
             EnsureUsers(scope);
         }

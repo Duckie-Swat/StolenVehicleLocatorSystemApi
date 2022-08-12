@@ -15,7 +15,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         private readonly ILogger<AuthController> _logger;
         private readonly IAuthService _authService;
 
-
         public AuthController(ILogger<AuthController> logger,
             IAuthService authService
             )
@@ -26,6 +25,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         }
 
         [HttpPost("Signup")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateUserAsync(RegisterUserDto newUser)
         {
             _logger.LogInformation("Create user");
@@ -38,6 +39,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         }
 
         [HttpPost("Signin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SigninAsync(LoginUserDto loginUser)
         {
             _logger.LogInformation("User login");
@@ -47,6 +50,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         }
 
         [HttpPost("refresh-token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RefreshToken(TokenModel tokenModel)
         {
             if (tokenModel is null)
@@ -77,6 +82,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 
         [Authorize]
         [HttpPost("revoke/{UserId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Revoke(Guid userId)
         {
             var result = await _authService.RevokeToken(userId);
