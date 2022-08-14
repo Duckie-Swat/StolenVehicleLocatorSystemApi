@@ -116,6 +116,7 @@ namespace StolenVehicleLocatorSystem.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors(AllOrigins);
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();

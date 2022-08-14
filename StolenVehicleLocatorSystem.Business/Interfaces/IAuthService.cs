@@ -11,8 +11,17 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 
         ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token);
 
+        ClaimsPrincipal? GetPrincipalFromToken(string? token);
+
         Task<object> UpdateToken(string email, string oldRefreshToken, ClaimsPrincipal claimsPrincipal);
 
         Task<bool> RevokeToken(Guid userId);
+
+        Task<bool> VerifyEmail(string email);
+
+        Task<bool> IsVerify(string email);
+
+        Task SendVerifyEmailAsync(string email);
+
     }
 }

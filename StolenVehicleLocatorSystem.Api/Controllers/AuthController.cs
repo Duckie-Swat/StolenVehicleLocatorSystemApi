@@ -5,15 +5,18 @@ using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos;
 using IdentityModel;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace StolenVehicleLocatorSystem.Api.Controllers
 {
+
     [ApiController]
     [Route(Endpoints.Auth)]
     public class AuthController : ControllerBase
     {
         private readonly ILogger<AuthController> _logger;
         private readonly IAuthService _authService;
+
 
         public AuthController(ILogger<AuthController> logger,
             IAuthService authService
@@ -24,7 +27,42 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 
         }
 
-        [HttpPost("Signup")]
+        /// <summary>
+        /// Send Email to client
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("email")]
+        [Authorize]
+        public async Task<IActionResult> SendVerifyEmailRequestAsync()
+        {
+            var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
+            if (email == null)
+                return BadRequest("Claim is not valid");
+            await _authService.SendVerifyEmailAsync(email.Value);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Verify email's user
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmailAsync(string token)
+        {
+            var principals = _authService.GetPrincipalFromToken(token);
+            if (principals == null)
+                return BadRequest("Token is expired or not valid");
+            var email = principals.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
+            if (email == null)
+                return BadRequest("Claim is not valid");
+            if (await _authService.IsVerify(email.Value))
+                return BadRequest("This account has already verified");
+            return await _authService.VerifyEmail(email.Value) ? Ok("Your email verified successful") : BadRequest("Something went wrong when verify email");
+        }
+
+
+
+        [HttpPost("signup")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateUserAsync(RegisterUserDto newUser)
@@ -38,7 +76,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return Created($"{Endpoints.Auth}/Signup", result);
         }
 
-        [HttpPost("Signin")]
+        [HttpPost("signin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SigninAsync(LoginUserDto loginUser)
