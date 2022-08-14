@@ -9,6 +9,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Validators\**" />
+    <Content Remove="Validators\**" />
+    <EmbeddedResource Remove="Validators\**" />
+    <None Remove="Validators\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Templates\WelcomeTemplate.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Templates\WelcomeTemplate.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.8">
       <PrivateAssets>all</PrivateAssets>
@@ -20,7 +35,6 @@
 
   <ItemGroup>
     <Folder Include="Constants\" />
-    <Folder Include="Validators\" />
   </ItemGroup>
 
   <ItemGroup>

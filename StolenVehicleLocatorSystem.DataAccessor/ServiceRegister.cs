@@ -16,8 +16,10 @@ public static class ServiceRegister
         // For Entity Framework  
         services
             .AddDbContext<ApplicationDbContext>(options =>
-            //options.UseSqlServer(configuration.GetConnectionString("SqlServer")));
-            options.UseNpgsql(configuration.GetConnectionString("PostgreSQL")));
+                options.UseNpgsql(configuration.GetConnectionString("PostgreSQL"))
+                ,
+                ServiceLifetime.Transient
+            );
         // For Identity  
         services.AddIdentity<User, Role>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
