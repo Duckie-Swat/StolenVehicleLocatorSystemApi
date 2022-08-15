@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System;
+using System.Collections.Generic;
 
 namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 {
@@ -7,5 +8,6 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
     {
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
+        public List<UserToken> UserTokens { get; set; }
     }
 }

@@ -29,11 +29,13 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly IEmailSender _emailSender;
         private readonly IMailKitEmailService _mailKitEmailService;
         private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
+        private readonly IUserTokenService _userTokenService;
 
         public AuthService(UserManager<User> userManager,
             RoleManager<Role> roleManager, IMapper mapper,
             ILogger<AuthService> logger,
             IConfiguration configuration,
+            IUserTokenService userTokenService,
             IEmailSender emailSender,
             IMailKitEmailService mailKitEmailService
             )
@@ -44,6 +46,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             _mapper = mapper;
             _logger = logger;
             _configuration = configuration;
+            _userTokenService = userTokenService;
             _emailSender = emailSender;
             _mailKitEmailService = mailKitEmailService;
         }
@@ -139,6 +142,13 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
                 user.RefreshToken = refreshToken;
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
+
+                await _userTokenService.CreateUserToken(new CreateUserTokenDto { 
+                    RefreshToken = refreshToken,
+                    Platform = "",
+                    RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays),
+                    UserId = user.Id
+                });
 
                 await _userManager.UpdateAsync(user);
 

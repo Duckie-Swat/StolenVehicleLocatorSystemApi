@@ -25,6 +25,6 @@ public static class ServiceRegister
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        services.AddSingleton(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+        services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
     }
 }

@@ -15,6 +15,8 @@ namespace StolenVehicleLocatorSystem.Business
 
         private void FromPresentationLayer()
         {
+            //User Token
+            CreateMap<CreateUserTokenDto, UserToken>();
 
             // User 
             CreateMap<UserDetailDto, User>();

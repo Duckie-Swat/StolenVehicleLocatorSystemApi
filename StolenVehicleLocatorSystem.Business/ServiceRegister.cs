@@ -15,6 +15,7 @@ namespace StolenVehicleLocatorSystem.Business
             services.AddDataAccessLayer(configuration);
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
+            services.AddTransient<IUserTokenService, UserTokenService>();
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<IUserService, UserService>();
 
