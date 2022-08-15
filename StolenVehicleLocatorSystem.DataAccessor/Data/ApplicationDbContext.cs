@@ -14,6 +14,8 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Data
         {
             base.OnModelCreating(builder);
         }
+
+        public DbSet<UserToken> UserTokens { get; set; }
     }
 }
 

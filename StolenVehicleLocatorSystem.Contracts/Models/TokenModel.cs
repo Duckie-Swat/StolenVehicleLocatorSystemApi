@@ -1,4 +1,4 @@
-﻿namespace StolenVehicleLocatorSystem.Contracts.Dtos
+﻿namespace StolenVehicleLocatorSystem.Contracts.Models
 {
     public class TokenModel
     {

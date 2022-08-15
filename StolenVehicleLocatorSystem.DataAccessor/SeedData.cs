@@ -57,7 +57,8 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                         new Claim[]
                         {
                             new Claim(JwtClaimTypes.Name, "admin"),
-                            new Claim(JwtClaimTypes.Role, "Admin")
+                            new Claim(JwtClaimTypes.Role, "Admin"),
+                            new Claim(JwtClaimTypes.Id, admin.Id.ToString())
                         }
                     ).Result;
                 if (!result.Succeeded)
@@ -95,7 +96,8 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                         new Claim[]
                         {
                             new Claim(JwtClaimTypes.Name, customer.UserName),
-                            new Claim(JwtClaimTypes.Role, "Customer")
+                            new Claim(JwtClaimTypes.Role, "Customer"),
+                            new Claim(JwtClaimTypes.Id, customer.Id.ToString())
                         }
                     ).Result;
                 if (!result.Succeeded)
