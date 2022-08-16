@@ -9,6 +9,7 @@ using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Constants;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
+using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Models;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.IdentityModel.Tokens.Jwt;
@@ -149,7 +150,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 };
 
             }
-            return null;
+
+            throw new BadRequestException("username or password is not correct");
         }
 
         public async Task<RegisterUserResponseDto> Register(RegisterUserDto newUser)
@@ -159,8 +161,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var roleCheck = await _roleManager.FindByNameAsync(role);
             if (userCheck != null)
             {
-                _logger.LogError("Account exist");
-                return null;
+                throw new BadRequestException("Account exist");
             }
             else if (roleCheck == null)
             {
@@ -173,18 +174,10 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var user = _mapper.Map<User>(newUser);
             user.UserName = user.Email;
             var newUserResult = await _userManager.CreateAsync(user, newUser.Password);
-            List<string> errors = new();
+
             if (newUserResult.Errors.Any())
             {
-                foreach (var error in newUserResult.Errors)
-                {
-                    errors.Add(error.Description);
-                }
-                return new RegisterUserResponseDto
-                {
-                    Data = null,
-                    Errors = errors
-                };
+                throw new BadRequestException(newUserResult.Errors.ToString());
             }
 
             var authClaims = new List<Claim>
@@ -228,7 +221,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
             if (user == null || user.RefreshToken != oldRefreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
             {
-                throw new Exception("Invalid access token or refresh token");
+                throw new BadRequestException("Invalid access token or refresh token");
             }
 
             var newAccessToken = CreateToken(claimsPrincipal.Claims.ToList());
