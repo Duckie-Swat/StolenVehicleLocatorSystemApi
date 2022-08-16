@@ -9,7 +9,7 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
     {
         Task<UserDetailDto> Register(RegisterUserDto newUser, string role);
 
-        Task<UserDetailDto> GetById(string id);
+        Task<UserDetailDto> GetByEmail(string email);
 
         Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filters);
 

@@ -39,9 +39,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
             throw new NotImplementedException();
         }
 
-        public Task<UserDetailDto> GetById(string id)
+        public async Task<UserDetailDto> GetByEmail(string email)
         {
-            throw new NotImplementedException();
+            return _mapper.Map<UserDetailDto>(await _userManager.FindByEmailAsync(email));
         }
 
         public async Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filter)
