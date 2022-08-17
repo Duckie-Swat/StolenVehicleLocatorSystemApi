@@ -1,14 +1,12 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
+using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using StolenVehicleLocatorSystem.DataAccessor.Interfaces;
-using StolenVehicleLocatorSystem.DataAccessor.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace StolenVehicleLocatorSystem.Business.Services
 {
@@ -16,11 +14,15 @@ namespace StolenVehicleLocatorSystem.Business.Services
     {
         private readonly IBaseRepository<UserToken> _userToken;
         private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
 
-        public UserTokenService(IBaseRepository<UserToken> userToken, IMapper mapper)
+
+        public UserTokenService(IBaseRepository<UserToken> userToken,
+            IMapper mapper, ITokenService tokenService)
         {
             _userToken = userToken;
             _mapper = mapper;
+            _tokenService = tokenService;
         }
 
         public async Task<bool> CreateUserToken(CreateUserTokenDto createUserTokenDto)
@@ -35,6 +37,18 @@ namespace StolenVehicleLocatorSystem.Business.Services
             {
                 return false;
             }
+        }
+
+        public async Task<UserTokenDto> GetByRefreshToken(string refreshToken)
+        {
+            var userToken = await _userToken.GetByAsync(p => p.RefreshToken == refreshToken);
+
+            if (userToken == null)
+            {
+                throw new BadRequestException("Refresh token is invalid");
+            }
+
+            return _mapper.Map<UserTokenDto>(userToken);
         }
 
         public Task<bool> RevokeAllToken(Guid userId)
@@ -58,9 +72,32 @@ namespace StolenVehicleLocatorSystem.Business.Services
             }
         }
 
-        public Task<bool> UpdateUserToken(string refreshToken)
+        public async Task<object> UpdateToken(Guid userId, string oldRefreshToken, ClaimsPrincipal claimsPrincipal)
         {
-            throw new NotImplementedException();
+
+            var userToken = await _userToken.GetByAsync(p => p.RefreshToken == oldRefreshToken);
+
+            if (userToken == null)
+            {
+                throw new BadRequestException("Invalid access token or refresh token");
+            }
+
+            if (userToken.RefreshTokenExpiryTime <= DateTime.Now)
+            {
+                await RevokeToken(oldRefreshToken);
+                throw new BadRequestException("Refresh token is expired");
+            }
+
+            var newAccessToken = _tokenService.CreateAccessToken(claimsPrincipal.Claims.ToList());
+            var newRefreshToken = _tokenService.GenerateRefreshToken();
+
+            userToken.RefreshToken = newRefreshToken;
+            await _userToken.UpdateAsync(userToken);
+            return new
+            {
+                accessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken),
+                refreshToken = newRefreshToken
+            };
         }
     }
 }

@@ -88,7 +88,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
                 var result = await _userManager.CreateAsync(user, newUser.Password);
 
-                result = _userManager.AddToRoleAsync(user, role).Result;
+                result = await _userManager.AddToRoleAsync(user, role);
 
                 result = await
                 _userManager.AddClaimsAsync(

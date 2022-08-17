@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using StolenVehicleLocatorSystem.Contracts.Constants;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static StolenVehicleLocatorSystem.Contracts.Constants.ValidationRules;
 
@@ -7,12 +8,12 @@ namespace StolenVehicleLocatorSystem.Contracts.Filters
     public class BaseFilter
     {
         [Required]
-        [DefaultValue(1)]
-        public int Page { get; set; } = 1;
+        [DefaultValue(DefaultFilterCriteria.Page)]
+        public int Page { get; set; } = DefaultFilterCriteria.Page;
 
         [Required]
-        [DefaultValue(20)]
-        public int Limit { get; set; } = 20;
+        [DefaultValue(DefaultFilterCriteria.Limit)]
+        public int Limit { get; set; } = DefaultFilterCriteria.Limit;
 
         [MaxLength(CommonRules.MaxLenghCharactersForText)]
         public string Keyword { get; set; } = "";

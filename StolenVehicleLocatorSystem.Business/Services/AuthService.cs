@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Constants;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
@@ -14,8 +13,6 @@ using StolenVehicleLocatorSystem.Contracts.Models;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace StolenVehicleLocatorSystem.Business.Services
 {
@@ -30,6 +27,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly IMailKitEmailService _mailKitEmailService;
         private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
         private readonly IUserTokenService _userTokenService;
+        private readonly ITokenService _tokenService;
 
         public AuthService(UserManager<User> userManager,
             RoleManager<Role> roleManager, IMapper mapper,
@@ -37,7 +35,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
             IConfiguration configuration,
             IUserTokenService userTokenService,
             IEmailSender emailSender,
-            IMailKitEmailService mailKitEmailService
+            IMailKitEmailService mailKitEmailService,
+            ITokenService tokenService
             )
         {
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
@@ -49,114 +48,36 @@ namespace StolenVehicleLocatorSystem.Business.Services
             _userTokenService = userTokenService;
             _emailSender = emailSender;
             _mailKitEmailService = mailKitEmailService;
+            _tokenService = tokenService;
         }
 
-        private JwtSecurityToken CreateToken(IList<Claim> authClaims)
-        {
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-            _ = int.TryParse(_configuration["JWT:TokenValidityInMinutes"], out int tokenValidityInMinutes);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["JWT:ValidIssuer"],
-                audience: _configuration["JWT:ValidAudience"],
-                expires: DateTime.UtcNow.AddMinutes(tokenValidityInMinutes),
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
-
-            return token;
-        }
-
-        private static string GenerateRefreshToken()
-        {
-            var randomNumber = new byte[64];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(randomNumber);
-            return Convert.ToBase64String(randomNumber);
-        }
-
-        public ClaimsPrincipal? GetPrincipalFromExpiredToken(string? token)
-        {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])),
-                ValidateLifetime = false,
-                ValidAudience = _configuration["JWT:ValidAudience"],
-                ValidIssuer = _configuration["JWT:ValidIssuer"]
-            };
-
-            var principal = _jwtSecurityTokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                throw new SecurityTokenException("Invalid token");
-
-            return principal;
-        }
-
-        public ClaimsPrincipal? GetPrincipalFromToken(string? token)
-        {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])),
-                ValidateLifetime = true,
-                ValidAudience = _configuration["JWT:ValidAudience"],
-                ValidIssuer = _configuration["JWT:ValidIssuer"]
-            };
-            var principal = _jwtSecurityTokenHandler.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                throw new SecurityTokenException("Invalid token");
-
-            return principal;
-        }
-
-
-        public async Task<LoginResponseDto> Login(LoginUserDto loginUser)
+        public async Task<TokenResponse> Login(LoginUserDto loginUser)
         {
             var user = await _userManager.FindByEmailAsync(loginUser.Email);
             if (user != null && await _userManager.CheckPasswordAsync(user, loginUser.Password))
             {
-                var userRoles = await _userManager.GetRolesAsync(user);
-
-                var authClaims = new List<Claim>
-                {
-                    new Claim(JwtClaimTypes.Email, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-                foreach (var userRole in userRoles)
-                {
-                    authClaims.Add(new Claim(JwtClaimTypes.Role, userRole));
-                }
-
-
-                var token = CreateToken(authClaims);
-                var refreshToken = GenerateRefreshToken();
+                var authClaims = await _userManager.GetClaimsAsync(user);
+                var token = _tokenService.CreateAccessToken(authClaims);
+                var refreshToken = _tokenService.GenerateRefreshToken();
 
                 _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
 
-                user.RefreshToken = refreshToken;
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays);
-
-                await _userTokenService.CreateUserToken(new CreateUserTokenDto { 
+                var userToken = new CreateUserTokenDto
+                {
                     RefreshToken = refreshToken,
-                    Platform = "",
+                    Platform = "Test",
                     RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays),
                     UserId = user.Id
-                });
+                };
+                await _userTokenService.CreateUserToken(userToken);
 
-                await _userManager.UpdateAsync(user);
-
-                return new LoginResponseDto
+                return new TokenResponse
                 {
-                    Token = _jwtSecurityTokenHandler.WriteToken(token),
+
                     RefreshToken = refreshToken,
-                    Expiration = token.ValidTo
+                    AccessToken = _jwtSecurityTokenHandler.WriteToken(token),
+                    AccessTokenExpiration = token.ValidTo,
+                    RefreshTokenExpiration = userToken.RefreshTokenExpiryTime
                 };
 
             }
@@ -175,10 +96,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             }
             else if (roleCheck == null)
             {
-                _ = await _roleManager.CreateAsync(new Role
-                {
-                    Name = role
-                });
+                throw new BadRequestException("Role is not exist");
             }
 
             var user = _mapper.Map<User>(newUser);
@@ -193,7 +111,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var authClaims = new List<Claim>
                 {
                     new Claim(JwtClaimTypes.Email, user.Email),
-                    new Claim(JwtClaimTypes.Role, role)
+                    new Claim(JwtClaimTypes.Role, role),
+                    new Claim(JwtClaimTypes.Id, user.Id.ToString())
                 };
 
             await _userManager.AddToRoleAsync(user, role);
@@ -213,7 +132,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var user = await _userManager.FindByEmailAsync(email);
             var authClaims = await _userManager.GetClaimsAsync(user);
 
-            var token = CreateToken(authClaims);
+            var token = _tokenService.CreateAccessToken(authClaims);
 
             var emailSubject = "Verify Your Email";
             string filePath = Directory.GetCurrentDirectory() + "\\Templates\\WelcomeTemplate.html";
@@ -223,38 +142,6 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 To = user.Email,
                 VerifyEmailUrl = $"{_configuration["Jwt:ValidIssuer"]}/{Endpoints.Auth}/verify-email?token={_jwtSecurityTokenHandler.WriteToken(token)}"
             }, filePath);
-        }
-
-        public async Task<object> UpdateToken(string email, string oldRefreshToken, ClaimsPrincipal claimsPrincipal)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user == null || user.RefreshToken != oldRefreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
-            {
-                throw new BadRequestException("Invalid access token or refresh token");
-            }
-
-            var newAccessToken = CreateToken(claimsPrincipal.Claims.ToList());
-            var newRefreshToken = GenerateRefreshToken();
-
-            user.RefreshToken = newRefreshToken;
-            await _userManager.UpdateAsync(user);
-            return new
-            {
-                accessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken),
-                refreshToken = newRefreshToken
-            };
-        }
-
-        public async Task<bool> RevokeToken(Guid userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
-                return false;
-
-            user.RefreshToken = null;
-            await _userManager.UpdateAsync(user);
-            return true;
         }
 
         public async Task<bool> VerifyEmail(string email)
@@ -274,5 +161,6 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 return false;
             return user.EmailConfirmed;
         }
+
     }
 }
