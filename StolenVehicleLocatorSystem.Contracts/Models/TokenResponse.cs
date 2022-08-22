@@ -6,5 +6,6 @@
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiration { get; set; }
         public DateTime AccessTokenExpiration { get; set; }
+        public object User { get; set; }
     }
 }

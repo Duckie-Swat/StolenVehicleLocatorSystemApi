@@ -77,7 +77,11 @@ namespace StolenVehicleLocatorSystem.Business.Services
                     RefreshToken = refreshToken,
                     AccessToken = _jwtSecurityTokenHandler.WriteToken(token),
                     AccessTokenExpiration = token.ValidTo,
-                    RefreshTokenExpiration = userToken.RefreshTokenExpiryTime
+                    RefreshTokenExpiration = userToken.RefreshTokenExpiryTime,
+                    User = new
+                    {
+                        Id = user.Id
+                    }
                 };
 
             }
@@ -162,5 +166,21 @@ namespace StolenVehicleLocatorSystem.Business.Services
             return user.EmailConfirmed;
         }
 
+        public async Task ChangePassword(string email, string oldPassword, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if(user == null)
+                throw new BadRequestException("User doesn't exist");
+            if(await _userManager.CheckPasswordAsync(user, oldPassword))
+            {
+                var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+                if(result.Errors.Any())
+                {
+                    throw new BadRequestException(string.Join(",", result.Errors.Select(e => e.Description)));
+                }
+            }
+            else
+                throw new BadRequestException("Password doesn't correct");
+        }
     }
 }
