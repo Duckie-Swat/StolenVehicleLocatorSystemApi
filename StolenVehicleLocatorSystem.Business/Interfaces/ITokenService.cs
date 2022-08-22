@@ -7,9 +7,6 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
     {
         JwtSecurityToken CreateAccessToken(IList<Claim> authClaims);
         string GenerateRefreshToken();
-
-        ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
-
-        ClaimsPrincipal? GetPrincipalFromValidToken(string token);
+        ClaimsPrincipal? GetPrincipalFromToken(string token, bool isExpired);
     }
 }

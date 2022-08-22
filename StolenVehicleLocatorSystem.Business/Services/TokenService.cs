@@ -39,8 +39,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
-
-        public ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+        public ClaimsPrincipal? GetPrincipalFromToken(string token, bool isExpired)
         {
             var tokenValidationParameters = new TokenValidationParameters
             {
@@ -48,31 +47,11 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 ValidateIssuer = true,
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])),
-                ValidateLifetime = false,
+                ValidateLifetime = isExpired,
                 ValidAudience = _configuration["JWT:ValidAudience"],
                 ValidIssuer = _configuration["JWT:ValidIssuer"]
             };
 
-            var principal = _securityTokenValidator.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
-            if (securityToken is not JwtSecurityToken jwtSecurityToken ||
-                !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                throw new SecurityTokenException("Invalid token");
-
-            return principal;
-        }
-
-        public ClaimsPrincipal? GetPrincipalFromValidToken(string? token)
-        {
-            var tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"])),
-                ValidateLifetime = true,
-                ValidAudience = _configuration["JWT:ValidAudience"],
-                ValidIssuer = _configuration["JWT:ValidIssuer"]
-            };
             var principal = _securityTokenValidator.ValidateToken(token, tokenValidationParameters, out SecurityToken securityToken);
             if (securityToken is not JwtSecurityToken jwtSecurityToken ||
                 !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))

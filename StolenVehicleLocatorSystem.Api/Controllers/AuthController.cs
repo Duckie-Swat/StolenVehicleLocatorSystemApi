@@ -7,7 +7,6 @@ using System.Security.Claims;
 using System.Net;
 using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Models;
-using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using IdentityModel;
 
 namespace StolenVehicleLocatorSystem.Api.Controllers
@@ -37,8 +36,10 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             _tokenService = tokenService;
         }
 
-        [HttpGet("me")]
+        [HttpGet("my-account")]
         [Authorize]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProfile()
         {
             var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
@@ -48,6 +49,20 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             if (user == null)
                 return NotFound();
             return Ok(user);
+        }
+
+        [HttpPatch("my-account/password")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+
+        public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+        {
+            var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
+            if (email == null)
+                throw new BadRequestException("Claim is not valid");
+            await _authService.ChangePassword(email.Value, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
+            return NoContent();
         }
 
         /// <summary>
@@ -72,7 +87,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         [HttpGet("verify-email")]
         public async Task<IActionResult> VerifyEmailAsync(string token)
         {
-            var principals = _tokenService.GetPrincipalFromValidToken(token);
+            var principals = _tokenService.GetPrincipalFromToken(token, false);
             if (principals == null)
                 throw new BadRequestException("Token is expired or not valid");
             var email = principals.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email);
@@ -86,8 +101,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             }
             throw new BadRequestException("Something went wrong when verify email");
         }
-
-
 
         [HttpPost("signup")]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -109,7 +122,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         public async Task<IActionResult> SigninAsync(LoginUserDto loginUser)
         {
             _logger.LogInformation("User login");
-            return Ok(await _authService.Login(loginUser));
+            var tokenResponse = await _authService.Login(loginUser);
+            return Ok(tokenResponse);
 
         }
 
@@ -123,12 +137,12 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
                 throw new BadRequestException("Invalid client request");
             }
 
-            string? accessToken = tokenModel.AccessToken;
-            string? refreshToken = tokenModel.RefreshToken;
+            string accessToken = tokenModel.AccessToken;
+            string refreshToken = tokenModel.RefreshToken;
 
-            var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken);
+            var principal = _tokenService.GetPrincipalFromToken(accessToken, true);
 
-            if (principal == null || refreshToken == null)
+            if (principal == null)
             {
                 throw new BadRequestException("Invalid access token or refresh token");
             }
@@ -147,6 +161,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 
         [Authorize]
         [HttpPost("revoke/{UserId}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Revoke(string refreshToken)
         {
             var result = await _userTokenService.RevokeToken(refreshToken);
@@ -155,6 +171,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 
         [Authorize]
         [HttpPost("revoke-all/{UserId}")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> RevokeAll(Guid userId)
         {
             var result = await _userTokenService.RevokeAllToken(userId);

@@ -1,8 +1,13 @@
-﻿namespace StolenVehicleLocatorSystem.Contracts.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace StolenVehicleLocatorSystem.Contracts.Models
 {
     public class TokenModel
     {
-        public string? AccessToken { get; set; }
-        public string? RefreshToken { get; set; }
+        [Required]
+        public string AccessToken { get; set; }
+
+        [Required]
+        public string RefreshToken { get; set; }
     }
 }
