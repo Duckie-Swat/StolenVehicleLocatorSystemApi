@@ -109,7 +109,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
             if (newUserResult.Errors.Any())
             {
-                throw new BadRequestException(newUserResult.Errors.ToString());
+                throw new BadRequestException(string.Join(',',newUserResult.Errors.Select(e => e.Description)));
             }
 
             var authClaims = new List<Claim>

@@ -13,5 +13,20 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.Auth
         [MinLength(8)]
         [MaxLength(32)]
         public string Password { get; set; }
+
+        [Required]
+        [MaxLength(255)]
+        public string FirstName { get; set; }
+
+        [Required]
+        [MaxLength(255)]
+        public string LastName { get; set; }
+
+        [Required]
+        public DateTime DateOfBirth { get; set; }
+
+        [Required]
+        [MaxLength(255)]
+        public string Address { get; set; }
     }
 }
