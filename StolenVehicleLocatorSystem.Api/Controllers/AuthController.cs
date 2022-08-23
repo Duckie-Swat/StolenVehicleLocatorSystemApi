@@ -102,7 +102,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             throw new BadRequestException("Something went wrong when verify email");
         }
 
-        [HttpPost("signup")]
+        [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateUserAsync(RegisterUserDto newUser)
@@ -116,7 +116,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return Created($"{Endpoints.Auth}/Signup", result);
         }
 
-        [HttpPost("signin")]
+        [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SigninAsync(LoginUserDto loginUser)

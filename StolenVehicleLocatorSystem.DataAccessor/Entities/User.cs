@@ -6,6 +6,14 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 {
     public class User : IdentityUser<Guid>
     {
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+
+        public DateTime DateOfBirth { get; set; }
+
+        public string Address { get; set; }
+
         public List<UserToken> UserTokens { get; set; }
     }
 }
