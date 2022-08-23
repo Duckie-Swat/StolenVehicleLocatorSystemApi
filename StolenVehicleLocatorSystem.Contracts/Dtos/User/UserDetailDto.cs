@@ -17,9 +17,5 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.User
 
         [Required]
         public DateTime DateOfBirth { get; set; }
-
-        [Required]
-        [MaxLength(255)]
-        public string Address { get; set; }
     }
 }
