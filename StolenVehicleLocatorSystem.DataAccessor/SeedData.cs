@@ -36,7 +36,10 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                     Email = "admin@duckieswat.com",
                     EmailConfirmed = true,
                     PhoneNumber = "0123456789",
-                    PhoneNumberConfirmed = true
+                    PhoneNumberConfirmed = true,
+                    FirstName = "Hung",
+                    LastName = "Dinh",
+                    Address = " Etown 1, Level 3, 364 Cong Hoa Street, Tan Binh District, Ho Chi Minh City, Thành phố Hồ Chí Minh 736839, Vietnam"
                 };
                 var result = userMgr.CreateAsync(admin, "Str0ng!Passw0rd").Result;
                 if (!result.Succeeded)
@@ -56,9 +59,11 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                         admin,
                         new Claim[]
                         {
-                            new Claim(JwtClaimTypes.Name, "admin"),
+                            new Claim(JwtClaimTypes.Email, admin.Email),
                             new Claim(JwtClaimTypes.Role, "Admin"),
-                            new Claim(JwtClaimTypes.Id, admin.Id.ToString())
+                            new Claim(JwtClaimTypes.Id, admin.Id.ToString()),
+                            new Claim(JwtClaimTypes.GivenName, admin.FirstName),
+                            new Claim(JwtClaimTypes.FamilyName, admin.LastName)
                         }
                     ).Result;
                 if (!result.Succeeded)
@@ -75,7 +80,10 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                     Email = "customer@duckieswat.com",
                     EmailConfirmed = true,
                     PhoneNumber = "0123456755",
-                    PhoneNumberConfirmed = true
+                    PhoneNumberConfirmed = true,
+                    FirstName = "Nam",
+                    LastName = "Le",
+                    Address = " Etown 1, Level 3, 364 Cong Hoa Street, Tan Binh District, Ho Chi Minh City, Thành phố Hồ Chí Minh 736839, Vietnam"
                 };
                 var result = userMgr.CreateAsync(customer, "Str0ng!Passw0rd").Result;
                 if (!result.Succeeded)
@@ -95,9 +103,11 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                         customer,
                         new Claim[]
                         {
-                            new Claim(JwtClaimTypes.Name, customer.UserName),
+                            new Claim(JwtClaimTypes.Email, customer.Email),
                             new Claim(JwtClaimTypes.Role, "Customer"),
-                            new Claim(JwtClaimTypes.Id, customer.Id.ToString())
+                            new Claim(JwtClaimTypes.Id, customer.Id.ToString()),
+                            new Claim(JwtClaimTypes.GivenName, admin.FirstName),
+                            new Claim(JwtClaimTypes.FamilyName, admin.LastName)
                         }
                     ).Result;
                 if (!result.Succeeded)

@@ -80,7 +80,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
                     RefreshTokenExpiration = userToken.RefreshTokenExpiryTime,
                     User = new
                     {
-                        Id = user.Id
+                        Id = user.Id,
+                        DisplayName = user.FirstName + " " + user.LastName
                     }
                 };
 
@@ -116,7 +117,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 {
                     new Claim(JwtClaimTypes.Email, user.Email),
                     new Claim(JwtClaimTypes.Role, role),
-                    new Claim(JwtClaimTypes.Id, user.Id.ToString())
+                    new Claim(JwtClaimTypes.Id, user.Id.ToString()),
+                    new Claim(JwtClaimTypes.GivenName, user.FirstName),
+                    new Claim(JwtClaimTypes.FamilyName, user.LastName)
                 };
 
             await _userManager.AddToRoleAsync(user, role);
