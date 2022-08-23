@@ -48,7 +48,14 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             var user = await _userService.GetByEmail(email.Value);
             if (user == null)
                 return NotFound();
-            return Ok(user);
+            return new ObjectResult(new
+            {
+                User = new
+                {
+                    Id = user.Id,
+                    DisplayName = user.FirstName + " " + user.LastName
+                }
+            });
         }
 
         [HttpPatch("my-account/password")]
