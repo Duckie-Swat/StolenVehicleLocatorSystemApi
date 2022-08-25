@@ -38,8 +38,7 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                     PhoneNumber = "0123456789",
                     PhoneNumberConfirmed = true,
                     FirstName = "Hung",
-                    LastName = "Dinh",
-                    Address = " Etown 1, Level 3, 364 Cong Hoa Street, Tan Binh District, Ho Chi Minh City, Thành phố Hồ Chí Minh 736839, Vietnam"
+                    LastName = "Dinh"
                 };
                 var result = userMgr.CreateAsync(admin, "Str0ng!Passw0rd").Result;
                 if (!result.Succeeded)
@@ -82,8 +81,7 @@ namespace StolenVehicleLocatorSystem.DataAccessor
                     PhoneNumber = "0123456755",
                     PhoneNumberConfirmed = true,
                     FirstName = "Nam",
-                    LastName = "Le",
-                    Address = " Etown 1, Level 3, 364 Cong Hoa Street, Tan Binh District, Ho Chi Minh City, Thành phố Hồ Chí Minh 736839, Vietnam"
+                    LastName = "Le"
                 };
                 var result = userMgr.CreateAsync(customer, "Str0ng!Passw0rd").Result;
                 if (!result.Succeeded)

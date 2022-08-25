@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StolenVehicleLocatorSystem.Api.Hubs;
+using StolenVehicleLocatorSystem.Api.Hubs.Providers;
 using StolenVehicleLocatorSystem.Business;
 using StolenVehicleLocatorSystem.DataAccessor;
 using System.Text;
@@ -107,6 +110,11 @@ namespace StolenVehicleLocatorSystem.Api
                         }
                     });
              });
+
+            // SignalR
+            builder.Services.AddSignalR();
+            builder.Services.AddSingleton<IUserIdProvider, EmailBasedUserIdProvider>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -121,6 +129,9 @@ namespace StolenVehicleLocatorSystem.Api
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapHub<MessageHub>("/Message");
+            app.MapHub<NotificationHub>("/Notification");
 
             app.UseExceptionHandler(c => c.Run(async context =>
             {
