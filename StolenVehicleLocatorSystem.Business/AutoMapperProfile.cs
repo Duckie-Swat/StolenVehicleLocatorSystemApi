@@ -1,4 +1,5 @@
 ﻿using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
+using StolenVehicleLocatorSystem.Contracts.Dtos.Notification;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 
@@ -23,12 +24,17 @@ namespace StolenVehicleLocatorSystem.Business
             CreateMap<UserDetailDto, User>();
             CreateMap<RegisterUserDto, User>();
             CreateMap<LoginUserDto, User>();
+
+            // Notification
+            CreateMap<NotificationDto, Notification>();
+            CreateMap<CreateNotificationDto, Notification>();
         }
 
         private void FromDataAccessorLayer()
         {
             CreateMap<User, UserDetailDto>();
             CreateMap<UserToken, UserTokenDto>();
+            CreateMap<Notification, NotificationDto>();
         }
     }
 }
