@@ -12,6 +12,7 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 
         public DateTime DateOfBirth { get; set; }
 
-        public List<UserToken> UserTokens { get; set; }
+        public IEnumerable<UserToken> UserTokens { get; set; }
+        public IEnumerable<Notification> Notifications { get; set; }
     }
 }

@@ -63,6 +63,23 @@ namespace StolenVehicleLocatorSystem.Api
                     ValidIssuer = configuration["JWT:ValidIssuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"]))
                 };
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        // If the request is for our hub...
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/hubs/messages") || path.StartsWithSegments("/hubs/notifications")))
+                        {
+                            // Read the token out of the query string
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
 
 
@@ -126,12 +143,16 @@ namespace StolenVehicleLocatorSystem.Api
             }
 
             app.UseCors(AllOrigins);
+            app.UseRouting();
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+            app.UseWebSockets();
 
-            app.MapHub<MessageHub>("/Message");
-            app.MapHub<NotificationHub>("/Notification");
+
+            app.MapHub<MessageHub>("/hubs/messages");
+            app.MapHub<NotificationHub>("/hubs/notifications");
+
 
             app.UseExceptionHandler(c => c.Run(async context =>
             {
@@ -145,8 +166,6 @@ namespace StolenVehicleLocatorSystem.Api
             app.UseExceptionHandler("/error");
 
             app.MapControllers();
-
-
 
             app.Run();
             return Task.CompletedTask;

@@ -11,7 +11,6 @@ using IdentityModel;
 
 namespace StolenVehicleLocatorSystem.Api.Controllers
 {
-
     [ApiController]
     [Route(Endpoints.Auth)]
     public class AuthController : ControllerBase
