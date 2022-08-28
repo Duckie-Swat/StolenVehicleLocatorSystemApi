@@ -79,5 +79,10 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task UpdateRangeAsync(IEnumerable<T> entities)
+        {
+            _dbContext.UpdateRange(entities);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

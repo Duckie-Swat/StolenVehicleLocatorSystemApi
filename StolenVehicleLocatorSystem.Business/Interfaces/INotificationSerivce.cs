@@ -8,5 +8,8 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
     {
         Task<NotificationDto> CreateAsync (CreateNotificationDto createNotificationDto);
         Task<PagedResponseModel<NotificationDto>> PagedQueryAsync(BaseFilter filters);
+
+        Task MaskAsRead(Guid notificationId, Guid userId);
+        Task MaskAllAsRead(Guid userId);
     }
 }
