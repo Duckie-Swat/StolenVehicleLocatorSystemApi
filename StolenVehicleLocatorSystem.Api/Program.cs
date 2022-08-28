@@ -7,6 +7,7 @@ using StolenVehicleLocatorSystem.Api.Hubs;
 using StolenVehicleLocatorSystem.Api.Hubs.Providers;
 using StolenVehicleLocatorSystem.Business;
 using StolenVehicleLocatorSystem.DataAccessor;
+using System.Reflection;
 using System.Text;
 
 namespace StolenVehicleLocatorSystem.Api
@@ -101,6 +102,9 @@ namespace StolenVehicleLocatorSystem.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
              {
+                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                 c.IncludeXmlComments(xmlPath);
 
                  c.SwaggerDoc(configuration["Swagger:SwaggerDoc:Version"], new OpenApiInfo
                  {

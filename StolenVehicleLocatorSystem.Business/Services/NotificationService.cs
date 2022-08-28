@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using StolenVehicleLocatorSystem.Business.Extensions;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Notification;
+using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using StolenVehicleLocatorSystem.DataAccessor.Interfaces;
+using System.Net;
 
 namespace StolenVehicleLocatorSystem.Business.Services
 {
@@ -24,6 +27,25 @@ namespace StolenVehicleLocatorSystem.Business.Services
         {
             var notication = _mapper.Map<Notification>(createNotificationDto);
             return _mapper.Map<NotificationDto>(await _notification.AddAsync(notication));
+        }
+
+        public async Task MaskAllAsRead(Guid userId)
+        {
+            var notifications = _notification.Entities.Where(x => x.UserId == userId);
+            if(!notifications.Any())
+                throw new HttpStatusException(HttpStatusCode.NotFound, "Notifcations is empty");
+            var notificationList = await notifications.ToListAsync();
+            notificationList.ForEach(n => n.IsUnRead = false);
+            await _notification.UpdateRangeAsync(notificationList);
+        }
+
+        public async Task MaskAsRead(Guid notificationId, Guid userId)
+        {
+            var notication = await _notification.Entities.FirstOrDefaultAsync(e => e.UserId == userId && e.Id == notificationId);
+            if (notication == null)
+                throw new HttpStatusException(HttpStatusCode.NotFound, "This notification doesn't exist");
+            notication.IsUnRead = false;
+            await _notification.UpdateAsync(notication);
         }
 
         public async Task<PagedResponseModel<NotificationDto>> PagedQueryAsync(BaseFilter filter)

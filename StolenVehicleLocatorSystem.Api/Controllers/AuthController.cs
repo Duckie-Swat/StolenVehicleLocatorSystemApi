@@ -34,7 +34,11 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             _userTokenService = userTokenService;
             _tokenService = tokenService;
         }
-
+        /// <summary>
+        /// Get current profile
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
         [HttpGet("my-account")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -56,7 +60,12 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
                 }
             });
         }
-
+        /// <summary>
+        /// Change password for current account
+        /// </summary>
+        /// <param name="changePasswordDto"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
         [HttpPatch("my-account/password")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -107,7 +116,12 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             }
             throw new BadRequestException("Something went wrong when verify email");
         }
-
+        /// <summary>
+        /// Register new account
+        /// </summary>
+        /// <param name="newUser"></param>
+        /// <returns></returns>
+        /// <exception cref="HttpStatusException"></exception>
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -121,7 +135,11 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             }
             return Created($"{Endpoints.Auth}/Signup", result);
         }
-
+        /// <summary>
+        /// Login to system
+        /// </summary>
+        /// <param name="loginUser"></param>
+        /// <returns></returns>
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -132,7 +150,13 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return Ok(tokenResponse);
 
         }
-
+        /// <summary>
+        /// Invoke new pair accesstoken, refreshtoken
+        /// </summary>
+        /// <param name="tokenModel"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
+        /// <exception cref="HttpStatusException"></exception>
         [HttpPost("refresh-token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -164,7 +188,11 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return new ObjectResult(result);
 
         }
-
+        /// <summary>
+        /// Revoke refreshtoken from a specific user
+        /// </summary>
+        /// <param name="refreshToken"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpPost("revoke/{UserId}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -174,7 +202,12 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             var result = await _userTokenService.RevokeToken(refreshToken);
             return result ? NoContent() : BadRequest("Invalid userId");
         }
-
+        /// <summary>
+        /// Revoke all refreshtoken from a specific user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
         [Authorize]
         [HttpPost("revoke-all/{UserId}")]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

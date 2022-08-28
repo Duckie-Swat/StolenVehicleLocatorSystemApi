@@ -16,7 +16,11 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         {
             _userService = userService;
         }
-
+        /// <summary>
+        /// Search, pagination, sort users
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
         [HttpGet("find")]
         public async Task<IActionResult> FindPagedUsersAsync([FromQuery] UserFilter filter)
         {
