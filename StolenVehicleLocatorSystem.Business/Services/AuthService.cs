@@ -185,5 +185,14 @@ namespace StolenVehicleLocatorSystem.Business.Services
             else
                 throw new BadRequestException("Password doesn't correct");
         }
+
+        public async Task<bool> IsRefreshTokenValid(string refreshToken, Guid userId)
+        {
+            var refreshTokenInfor = await _userTokenService.GetByRefreshToken(refreshToken);
+            if (refreshTokenInfor.UserId == userId)
+                return true;
+            else
+                return false;
+        }
     }
 }

@@ -19,5 +19,6 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 
         Task SendVerifyEmailAsync(string email);
 
+        Task<bool> IsRefreshTokenValid(string refreshToken, Guid userId);
     }
 }

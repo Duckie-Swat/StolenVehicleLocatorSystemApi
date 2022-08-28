@@ -217,5 +217,19 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             var result = await _userTokenService.RevokeAllToken(userId);
             return result ? NoContent() : throw new BadRequestException("Something went wrong when verify email");
         }
+        
+        [Authorize]
+        [HttpPost("my-account/logout")]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Logout(string refreshToken)
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id);
+            var checkRefreshToken =  await _authService.IsRefreshTokenValid(refreshToken, Guid.Parse(userId.Value));
+            if (!checkRefreshToken)
+                throw new BadRequestException("Invalid Refresh Token!");
+            var result = await _userTokenService.RevokeToken(refreshToken);
+            return result ? NoContent() : BadRequest("Invalid userId");
+        }
     }
 }
