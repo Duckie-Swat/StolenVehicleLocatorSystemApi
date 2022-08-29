@@ -52,17 +52,36 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {
-                query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
+                if(filter.OrderProperty.ToLower() == "fullname")
+                {
+                    if (filter.Desc == true)
+                        query = query.OrderByDescending(q => q.FirstName)
+                                     .ThenByDescending(q => q.LastName);
+                    else
+                        query = query.OrderBy(q => q.FirstName).ThenBy(q => q.LastName);
+
+                }
+                else 
+                    query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
+            }
+          
+            var paginatedUsers = await query.PaginateAsync(filter.Page, filter.Limit);
+            
+            var users = _mapper.Map<IList<UserDetailDto>>(paginatedUsers.Items);
+
+            // Add role to user detail
+            for (int i = 0; i < users.Count; i++)
+            {
+                var roles = await _userManager.GetRolesAsync(paginatedUsers.Items[i]);
+                users[i].Roles = roles;
             }
 
-
-            var users = await query.PaginateAsync(filter.Page, filter.Limit);
             return new PagedResponseModel<UserDetailDto>
             {
                 CurrentPage = filter.Page,
-                TotalItems = users.TotalItems,
-                Items = _mapper.Map<IEnumerable<UserDetailDto>>(users.Items),
-                TotalPages = users.TotalPages
+                TotalItems = paginatedUsers.TotalItems,
+                Items = users,
+                TotalPages = paginatedUsers.TotalPages
             };
         }
 

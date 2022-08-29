@@ -17,5 +17,9 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.User
 
         [Required]
         public DateTime DateOfBirth { get; set; }
+
+        public bool EmailConfirmed { get; set; }
+
+        public IEnumerable<string> Roles { get; set; }
     }
 }
