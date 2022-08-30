@@ -22,12 +22,8 @@ namespace StolenVehicleLocatorSystem.Api
             var configuration = builder.Configuration;
             // Add Business layer
             builder.Services.AddBusinessLayer(configuration);
-
-            if (args.Contains("/seed-data"))
-            {
-                SeedData.EnsureSeedData(builder.Services);
-            }
-
+  
+            SeedData.EnsureSeedData(builder.Services);
 
             builder.Services.AddControllers().AddJsonOptions(opt =>
             {
@@ -139,16 +135,15 @@ namespace StolenVehicleLocatorSystem.Api
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-                app.UseDeveloperExceptionPage();
-            }
+            
+           app.UseSwagger();
+           app.UseSwaggerUI();
+           app.UseDeveloperExceptionPage();
+            
 
             app.UseCors(AllOrigins);
             app.UseRouting();
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseWebSockets();

@@ -142,7 +142,13 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var token = _tokenService.CreateAccessToken(authClaims);
 
             var emailSubject = "Verify Your Email";
-            string filePath = Directory.GetCurrentDirectory() + "\\Templates\\WelcomeTemplate.html";
+            string filePath = Path.Combine(new string[]
+            {
+                Directory.GetCurrentDirectory(),
+                "Templates",
+                "WelcomeTemplate.html"
+            });
+
             await _mailKitEmailService.SendWelcomeEmailAsync(new WelcomeRequest
             {
                 Subject = emailSubject,

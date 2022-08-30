@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StolenVehicleLocatorSystem.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StolenVehicleLocatorSystem.DataAccessor", "StolenVehicleLocatorSystem.DataAccessor\StolenVehicleLocatorSystem.DataAccessor.csproj", "{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{F9858C64-AAA3-4DB4-BE20-0837639D1D22}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{789A92AB-A311-4AEA-B5E2-0AA5EDB895E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9858C64-AAA3-4DB4-BE20-0837639D1D22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9858C64-AAA3-4DB4-BE20-0837639D1D22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9858C64-AAA3-4DB4-BE20-0837639D1D22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9858C64-AAA3-4DB4-BE20-0837639D1D22}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
