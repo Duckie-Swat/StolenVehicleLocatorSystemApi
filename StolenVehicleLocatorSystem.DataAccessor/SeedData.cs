@@ -1,6 +1,8 @@
 ﻿using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using StolenVehicleLocatorSystem.DataAccessor.Data;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
@@ -17,9 +19,10 @@ namespace StolenVehicleLocatorSystem.DataAccessor
             var serviceProvider = serviceCollection.BuildServiceProvider();
             using var scope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
             var ctx = scope.ServiceProvider.GetService<ApplicationDbContext>();
+
             ctx.Database.Migrate();
-            EnsureRoles(scope);
-            EnsureUsers(scope);
+             EnsureRoles(scope);
+             EnsureUsers(scope);
         }
 
         private static void EnsureUsers(IServiceScope scope)
