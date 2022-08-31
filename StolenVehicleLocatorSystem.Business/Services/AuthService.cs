@@ -83,7 +83,10 @@ namespace StolenVehicleLocatorSystem.Business.Services
                         Id = user.Id,
                         DisplayName = user.FirstName + " " + user.LastName,
                         FirstName = user.FirstName,
-                        LastName = user.LastName
+                        LastName = user.LastName,
+                        Email = user.Email,
+                        PhoneNumber = user.PhoneNumber,
+                        DateOfBirth = user.DateOfBirth
                     }
                 };
 
@@ -187,7 +190,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
                 if(result.Errors.Any())
                 {
-                    throw new BadRequestException(string.Join(",", result.Errors.Select(e => e.Description)));
+                    throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
                 }
             }
             else
