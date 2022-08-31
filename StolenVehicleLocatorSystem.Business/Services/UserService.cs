@@ -7,6 +7,7 @@ using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
+using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.Security.Claims;
@@ -119,6 +120,20 @@ namespace StolenVehicleLocatorSystem.Business.Services
                     }
                 );
                 return _mapper.Map<UserDetailDto>(user);
+            }
+        }
+
+        public async Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            user.FirstName = updateUserRequest.FirstName;
+            user.LastName = updateUserRequest.LastName;
+            user.PhoneNumber = updateUserRequest.PhoneNumber;
+            user.DateOfBirth = updateUserRequest.DateOfBirth;
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Errors.Any())
+            {
+                throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
             }
         }
     }

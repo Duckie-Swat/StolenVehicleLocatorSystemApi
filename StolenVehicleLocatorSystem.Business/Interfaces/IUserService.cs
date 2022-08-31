@@ -14,5 +14,7 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
         Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filters);
 
         Task<int> CountAsync();
+
+        Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest);
     }
 }
