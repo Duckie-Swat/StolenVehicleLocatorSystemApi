@@ -5,8 +5,6 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>f9858c64-aaa3-4db4-be20-0837639d1d22</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
-    <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
-    <DockerServiceName>stolenvehiclelocatorsystem.api</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

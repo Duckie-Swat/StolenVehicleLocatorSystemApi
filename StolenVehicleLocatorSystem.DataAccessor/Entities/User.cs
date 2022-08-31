@@ -12,9 +12,6 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 
         public DateTime DateOfBirth { get; set; }
 
-        [PersonalData]
-        public bool EmailConfirmed { get; set; } = false;
-
         public IEnumerable<UserToken> UserTokens { get; set; }
         public IEnumerable<Notification> Notifications { get; set; }
     }

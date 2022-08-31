@@ -56,7 +56,11 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
                 User = new
                 {
                     Id = user.Id,
-                    DisplayName = user.FirstName + " " + user.LastName
+                    DisplayName = user.FirstName + " " + user.LastName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = email.Value,
+                    PhoneNumber = user.PhoneNumber
                 }
             });
         }
