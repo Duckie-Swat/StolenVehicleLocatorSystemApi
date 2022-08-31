@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
-using System;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 {
-    public class Role : IdentityRole<Guid>
+    public class BaseEntity
     {
+        [Key]
+        public Guid Id { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime LastUpdatedAt { get; set; } = DateTime.UtcNow;
@@ -15,6 +18,6 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 
         public Guid DeletedBy { get; set; }
 
-        public bool IsDeleted { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }

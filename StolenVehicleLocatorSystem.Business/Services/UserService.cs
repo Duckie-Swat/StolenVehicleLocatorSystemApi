@@ -123,13 +123,16 @@ namespace StolenVehicleLocatorSystem.Business.Services
             }
         }
 
-        public async Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest)
+        public async Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest, Guid updateBy)
         {
             var user = await _userManager.FindByEmailAsync(email);
             user.FirstName = updateUserRequest.FirstName;
             user.LastName = updateUserRequest.LastName;
             user.PhoneNumber = updateUserRequest.PhoneNumber;
             user.DateOfBirth = updateUserRequest.DateOfBirth;
+            user.LastUpdatedAt = DateTime.UtcNow;
+            
+            user.LastUpdatedBy = updateBy;
             var result = await _userManager.UpdateAsync(user);
             if (result.Errors.Any())
             {

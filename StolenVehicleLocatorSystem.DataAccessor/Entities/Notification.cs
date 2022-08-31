@@ -1,18 +1,25 @@
 ﻿using StolenVehicleLocatorSystem.DataAccessor.Enums;
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 {
-    public class Notification
+    public class Notification : BaseEntity
     {
-        public Guid Id { get; set; }
+       
         public string Title { get; set; }
+
+        [MaxLength(3000)]
         public string Description { get; set; }
         public NotificationTypeEnum  Type { get; set; }
-        public DateTime CreatedAt { get; set; }
+            
+        
         public bool IsUnRead { get; set; } = true;
 
         public Guid UserId { get; set; }
-        public User User { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
     }
 }

@@ -1,3 +1,4 @@
+using IdentityModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -86,7 +87,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             var user = await _userService.GetByEmail(email.Value);
             if (user == null)
                 return NotFound();
-            await _userService.UpdateUserAsync(email.Value, updateUserRequest);
+            await _userService.UpdateUserAsync(email.Value, updateUserRequest, user.Id);
             return NoContent();
         }
         /// <summary>
@@ -102,10 +103,11 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> UpdateOneUser(Guid userId, UpdateUserDto updateUserRequest)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
+            var userToUpdate = await _userManager.FindByIdAsync(userId.ToString());
+            var currentUser = User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value;
+            if (userToUpdate == null || currentUser != null)
                 return NotFound();
-            await _userService.UpdateUserAsync(user.Email, updateUserRequest);
+            await _userService.UpdateUserAsync(userToUpdate.Email, updateUserRequest, Guid.Parse(currentUser));
             return NoContent();
         }
     }

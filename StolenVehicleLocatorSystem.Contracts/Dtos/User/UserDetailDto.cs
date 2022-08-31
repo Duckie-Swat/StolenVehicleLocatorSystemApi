@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace StolenVehicleLocatorSystem.Contracts.Dtos.User
 {
-    public class UserDetailDto
+    public class UserDetailDto : BaseDto
     {
         public Guid Id { get; set; }
         public string Email { get; set; }

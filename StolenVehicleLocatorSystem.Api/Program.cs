@@ -22,8 +22,9 @@ namespace StolenVehicleLocatorSystem.Api
             var configuration = builder.Configuration;
             // Add Business layer
             builder.Services.AddBusinessLayer(configuration);
-  
-            SeedData.EnsureSeedData(builder.Services);
+            
+            if(args.Contains("/seed"))
+                SeedData.EnsureSeedData(builder.Services);
 
             builder.Services.AddControllers().AddJsonOptions(opt =>
             {

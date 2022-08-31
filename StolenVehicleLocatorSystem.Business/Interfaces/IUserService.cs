@@ -15,6 +15,6 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 
         Task<int> CountAsync();
 
-        Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest);
+        Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest, Guid updateBy);
     }
 }

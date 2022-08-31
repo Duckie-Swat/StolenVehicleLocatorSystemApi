@@ -4,14 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 {
-    public class UserToken
+    public class UserToken : BaseEntity
     {
-        [Key]
-        public Guid Id { get; set; }
-        [ForeignKey("User")]
+      
         public Guid UserId { get; set; }
         public string Platform { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime RefreshTokenExpiryTime { get; set; }
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
     }
 }

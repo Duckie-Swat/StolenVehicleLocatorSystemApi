@@ -1,8 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-
-namespace StolenVehicleLocatorSystem.Contracts.Dtos.Auth
+﻿namespace StolenVehicleLocatorSystem.Contracts.Dtos.Auth
 {
-    public class UserTokenDto
+    public class UserTokenDto : BaseDto
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
