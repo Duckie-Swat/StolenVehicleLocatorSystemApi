@@ -29,13 +29,34 @@ namespace StolenVehicleLocatorSystem.Business.Services
             return _mapper.Map<NotificationDto>(await _notification.AddAsync(notication));
         }
 
+        public async Task HardRemoveAll(Guid userId)
+        {
+            var notifications = _notification.Entities.Where(x => x.UserId == userId);
+            if (!notifications.Any())
+                throw new HttpStatusException(HttpStatusCode.NotFound, "Notifcations is empty");
+            await _notification.RemoveRangeAsync(notifications);
+        }
+
+        public async Task HardRemoveOne(Guid notificationId, Guid userId)
+        {
+            var notication = await _notification.Entities.FirstOrDefaultAsync(e => e.UserId == userId && e.Id == notificationId);
+            if (notication == null)
+                throw new HttpStatusException(HttpStatusCode.NotFound, "This notification doesn't exist");
+            await _notification.DeleteAsync(notication.Id);
+        }
+
         public async Task MaskAllAsRead(Guid userId)
         {
             var notifications = _notification.Entities.Where(x => x.UserId == userId);
             if(!notifications.Any())
                 throw new HttpStatusException(HttpStatusCode.NotFound, "Notifcations is empty");
             var notificationList = await notifications.ToListAsync();
-            notificationList.ForEach(n => n.IsUnRead = false);
+            notificationList.ForEach(n =>
+            {
+                n.IsUnRead = false;
+                n.LastUpdatedAt = DateTime.UtcNow;
+                n.LastUpdatedBy = userId;
+            });
             await _notification.UpdateRangeAsync(notificationList);
         }
 
@@ -45,6 +66,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
             if (notication == null)
                 throw new HttpStatusException(HttpStatusCode.NotFound, "This notification doesn't exist");
             notication.IsUnRead = false;
+            notication.LastUpdatedAt = DateTime.UtcNow;
+            notication.LastUpdatedBy = userId;
             await _notification.UpdateAsync(notication);
         }
 
@@ -67,6 +90,32 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 Items = _mapper.Map<IEnumerable<NotificationDto>>(notifications.Items),
                 TotalPages = notifications.TotalPages
             };
+        }
+
+        public async Task SoftRemoveAll(Guid userId)
+        {
+            var notifications = _notification.Entities.Where(x => x.UserId == userId);
+            if (!notifications.Any())
+                throw new HttpStatusException(HttpStatusCode.NotFound, "Notifcations is empty");
+            var notificationList = await notifications.ToListAsync();
+            notificationList.ForEach(n =>
+            {
+                n.IsDeleted = true;
+                n.LastUpdatedAt = DateTime.UtcNow;
+                n.LastUpdatedBy = userId;
+            });
+            await _notification.UpdateRangeAsync(notificationList);
+        }
+
+        public async Task SoftRemoveOne(Guid notificationId, Guid userId)
+        {
+            var notication = await _notification.Entities.FirstOrDefaultAsync(e => e.UserId == userId && e.Id == notificationId);
+            if (notication == null)
+                throw new HttpStatusException(HttpStatusCode.NotFound, "This notification doesn't exist");
+            notication.IsDeleted = true;
+            notication.LastUpdatedAt = DateTime.UtcNow;
+            notication.LastUpdatedBy = userId;
+            await _notification.UpdateAsync(notication);
         }
     }
 }

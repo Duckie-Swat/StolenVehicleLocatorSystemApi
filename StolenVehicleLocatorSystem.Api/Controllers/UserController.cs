@@ -19,13 +19,16 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 
         private readonly IUserService _userService;
         private readonly UserManager<User> _userManager;
+        private readonly INotificationSerivce _notificationSerivce;
 
-        public UserController(IUserService userService, UserManager<User> userManager)
+        public UserController(IUserService userService, 
+            UserManager<User> userManager, 
+            INotificationSerivce notificationSerivce)
         {
             _userService = userService;
             _userManager = userManager;
+            _notificationSerivce = notificationSerivce;
         }
-
 
         /// <summary>
         /// Search, pagination, sort users
@@ -108,6 +111,127 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             if (userToUpdate == null || currentUser != null)
                 return NotFound();
             await _userService.UpdateUserAsync(userToUpdate.Email, updateUserRequest, Guid.Parse(currentUser));
+            return NoContent();
+        }
+        /// <summary>
+        /// Mask a notification as read based on notification id and user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="notificationId"></param>
+        /// <param name="updateUserRequest"></param>
+        /// <returns></returns>
+        [HttpPatch("{userId}/notifications/{notificationId}/mask")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> MaskNotificationAsReadById(Guid userId, Guid notificationId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            if (currentUserId != userId)
+                throw new BadRequestException("You cannot perform this action");
+            await _notificationSerivce.MaskAsRead(notificationId, userId);
+            return NoContent();
+        }
+        /// <summary>
+        /// Mask all notification as read based on  user id 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="notificationId"></param>
+        /// <param name="updateUserRequest"></param>
+        /// <returns></returns>
+        [HttpPatch("{userId}/notifications/mask")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> MaskNotificationsAsReadByUserId(Guid userId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            if (currentUserId != userId)
+                throw new BadRequestException("You cannot perform this action");
+            await _notificationSerivce.MaskAllAsRead(userId);
+            return NoContent();
+        }
+        /// <summary>
+        /// Soft remove a notification as read based on notification id and user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="notificationId"></param>
+        /// <param name="updateUserRequest"></param>
+        /// <returns></returns>
+        [HttpDelete("{userId}/notifications/{notificationId}/soft")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SoftRemoveNotificationById(Guid userId, Guid notificationId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            if (currentUserId != userId)
+                throw new BadRequestException("You cannot perform this action");
+            await _notificationSerivce.SoftRemoveOne(notificationId, userId);
+            return NoContent();
+        }
+
+        /// <summary>
+        ///  Soft remove all notification as read based on  user id 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="notificationId"></param>
+        /// <param name="updateUserRequest"></param>
+        /// <returns></returns>
+        [HttpDelete("{userId}/notifications/soft")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SoftRemoveNotificationsByUserId(Guid userId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            if (currentUserId != userId)
+                throw new BadRequestException("You cannot perform this action");
+            await _notificationSerivce.SoftRemoveAll(userId);
+            return NoContent();
+        }
+        /// <summary>
+        /// Hard remove a notification as read based on notification id and user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="notificationId"></param>
+        /// <param name="updateUserRequest"></param>
+        /// <returns></returns>
+        [HttpDelete("{userId}/notifications/{notificationId}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> HardRemoveNotificationById(Guid userId, Guid notificationId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            if (currentUserId != userId)
+                throw new BadRequestException("You cannot perform this action");
+            await _notificationSerivce.HardRemoveOne(notificationId, userId);
+            return NoContent();
+        }
+        /// <summary>
+        /// Hard remove all notification as read based on  user id 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="notificationId"></param>
+        /// <param name="updateUserRequest"></param>
+        /// <returns></returns>
+        [HttpDelete("{userId}/notifications")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> HardRemoveNotificationsByUserId(Guid userId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            if (currentUserId != userId)
+                throw new BadRequestException("You cannot perform this action");
+            await _notificationSerivce.HardRemoveAll(userId);
             return NoContent();
         }
     }
