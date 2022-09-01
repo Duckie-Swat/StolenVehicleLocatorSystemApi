@@ -6,6 +6,7 @@ using StolenVehicleLocatorSystem.Api.Hubs;
 using StolenVehicleLocatorSystem.Business.Interfaces;  
 using StolenVehicleLocatorSystem.Contracts.Constants;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Notification;
+using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 using System.Security.Claims;
 
@@ -33,7 +34,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateNotificationAsync(CreateNotificationDto createNotificationDto)
+        public async Task<IActionResult> CreateNotification(CreateNotificationDto createNotificationDto)
         {
             var notification = await _notificationSerivce.CreateAsync(createNotificationDto);
             var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
@@ -47,36 +48,9 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("find")]
-        public async Task<IActionResult> FindPagedNotificationsAsync([FromQuery] BaseFilter filter)
+        public async Task<IActionResult> FindPagedNotifications([FromQuery] BaseFilter filter)
         {
             return Ok(await _notificationSerivce.PagedQueryAsync(filter));
-        }
-        /// <summary>
-        /// mask as read for a notification
-        /// </summary>
-        /// <param name="id">Notification Id</param>
-        /// <returns></returns>
-        [HttpPatch("{id}/maskAsRead")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> MaskAsRead(Guid id)
-        {
-            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
-            await _notificationSerivce.MaskAsRead(id, userId);
-            return NoContent();
-        }
-        /// <summary>
-        /// Mask all notifications as read
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut("maskAsRead")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> MaskAllAsRead()
-        {
-            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
-            await _notificationSerivce.MaskAllAsRead(userId);
-            return NoContent();
         }
     }
 }
