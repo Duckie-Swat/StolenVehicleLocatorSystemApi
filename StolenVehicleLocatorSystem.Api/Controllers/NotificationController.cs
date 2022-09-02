@@ -3,10 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using StolenVehicleLocatorSystem.Api.Hubs;
-using StolenVehicleLocatorSystem.Business.Interfaces;  
+using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Constants;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Notification;
-using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 using System.Security.Claims;
 
@@ -36,8 +35,10 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateNotification(CreateNotificationDto createNotificationDto)
         {
-            var notification = await _notificationSerivce.CreateAsync(createNotificationDto);
             var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value;
+            createNotificationDto.UserId = Guid.Parse(userId!);
+            var notification = await _notificationSerivce.CreateAsync(createNotificationDto);
             await _notificationHubContext.Clients.Users(email!).SendAsync("SendNotification", notification);
             return Created(Endpoints.Notifications, notification);
         }
@@ -48,7 +49,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("find")]
-        public async Task<IActionResult> FindPagedNotifications([FromQuery] BaseFilter filter)
+        public async Task<IActionResult> FindPagedNotifications([FromQuery] BaseSearch filter)
         {
             return Ok(await _notificationSerivce.PagedQueryAsync(filter));
         }

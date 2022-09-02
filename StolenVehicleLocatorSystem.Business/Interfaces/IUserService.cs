@@ -11,10 +11,20 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 
         Task<UserDetailDto> GetByEmail(string email);
 
-        Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filters);
-
-        Task<int> CountAsync();
+        Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserSearch filters);
 
         Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest, Guid updateBy);
+
+        Task RestoreOneAsync(Guid id);
+
+        Task RestoreManyAsync(Guid[] ids);
+
+        Task SoftRemoveOne(Guid userId);
+        Task SoftRemoveMany(Guid[] userIds);
+
+        Task HardRemoveOne(Guid userId);
+
+        Task HardRemoveMany(Guid[] userIds);
+
     }
 }

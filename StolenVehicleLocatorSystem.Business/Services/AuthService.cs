@@ -187,6 +187,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 throw new BadRequestException("User doesn't exist");
             if(await _userManager.CheckPasswordAsync(user, oldPassword))
             {
+                if (oldPassword == newPassword)
+                    throw new BadRequestException("New password shouldn't be the same with old password");
                 var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
                 if(result.Errors.Any())
                 {

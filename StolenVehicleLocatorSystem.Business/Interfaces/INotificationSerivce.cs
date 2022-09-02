@@ -7,7 +7,8 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
     public interface INotificationSerivce
     {
         Task<NotificationDto> CreateAsync (CreateNotificationDto createNotificationDto);
-        Task<PagedResponseModel<NotificationDto>> PagedQueryAsync(BaseFilter filters);
+        Task<PagedResponseModel<NotificationDto>> PagedQueryAsync(BaseSearch filters);
+        Task<PagedResponseModel<NotificationDto>> PagedQueryAsyncByUserId(BaseSearch filters, Guid userId);
         Task MaskAsRead(Guid notificationId, Guid userId);
         Task MaskAllAsRead(Guid userId);
         Task SoftRemoveOne(Guid notificationId, Guid userId);

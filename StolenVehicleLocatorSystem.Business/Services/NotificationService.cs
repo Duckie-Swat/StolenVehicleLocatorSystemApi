@@ -8,6 +8,7 @@ using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using StolenVehicleLocatorSystem.DataAccessor.Interfaces;
+using StolenVehicleLocatorSystem.Extensions;
 using System.Net;
 
 namespace StolenVehicleLocatorSystem.Business.Services
@@ -71,11 +72,34 @@ namespace StolenVehicleLocatorSystem.Business.Services
             await _notification.UpdateAsync(notication);
         }
 
-        public async Task<PagedResponseModel<NotificationDto>> PagedQueryAsync(BaseFilter filter)
+        public async Task<PagedResponseModel<NotificationDto>> PagedQueryAsync(BaseSearch filter)
         {
             var query = _notification.Entities;
             query = query.Where(notification => string.IsNullOrEmpty(filter.Keyword)
                         || notification.Title.ToString().Contains(filter.Keyword));
+
+            if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
+            {
+                query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
+            }
+
+            var notifications = await query.PaginateAsync(filter.Page, filter.Limit);
+            return new PagedResponseModel<NotificationDto>
+            {
+                CurrentPage = filter.Page,
+                TotalItems = notifications.TotalItems,
+                Items = _mapper.Map<IEnumerable<NotificationDto>>(notifications.Items),
+                TotalPages = notifications.TotalPages
+            };
+        }
+
+        public async Task<PagedResponseModel<NotificationDto>> PagedQueryAsyncByUserId(BaseSearch filter, Guid userId)
+        {
+            var query = _notification.Entities;
+            query = query.Where(notification => ((string.IsNullOrEmpty(filter.Keyword)
+                        || notification.Title.ToString().Contains(filter.Keyword) ) 
+                        && notification.UserId == userId
+                        ));
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {

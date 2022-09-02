@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\StolenVehicleLocatorSystem.Extensions\StolenVehicleLocatorSystem.Extensions.csproj" />
     <ProjectReference Include="..\StolenVehicleLocatorSystem.DataAccessor\StolenVehicleLocatorSystem.DataAccessor.csproj" />
   </ItemGroup>
 
