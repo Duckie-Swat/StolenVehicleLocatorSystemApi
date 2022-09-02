@@ -5,7 +5,7 @@ using static StolenVehicleLocatorSystem.Contracts.Constants.ValidationRules;
 
 namespace StolenVehicleLocatorSystem.Contracts.Filters
 {
-    public class BaseFilter
+    public class BaseSearch
     {
         [Required]
         [DefaultValue(DefaultFilterCriteria.Page)]

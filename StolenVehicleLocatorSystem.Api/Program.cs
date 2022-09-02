@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using StolenVehicleLocatorSystem.Api.Hubs;
 using StolenVehicleLocatorSystem.Api.Hubs.Providers;
 using StolenVehicleLocatorSystem.Business;
+using StolenVehicleLocatorSystem.Contracts.Filters;
 using StolenVehicleLocatorSystem.DataAccessor;
 using System.Reflection;
 using System.Text;
@@ -127,6 +128,7 @@ namespace StolenVehicleLocatorSystem.Api
                             new List<string>{ "openid profile identity api" }
                         }
                     });
+                 c.SchemaFilter<SwaggerIgnoreFilter>();
              });
 
             // SignalR

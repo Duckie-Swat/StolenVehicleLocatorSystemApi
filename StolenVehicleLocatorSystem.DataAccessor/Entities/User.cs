@@ -31,5 +31,6 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 
         public virtual IEnumerable<UserToken> UserTokens { get; set; }
         public virtual IEnumerable<Notification> Notifications { get; set; }
+        public virtual IEnumerable<Camera> Cameras { get; set; }
     }
 }

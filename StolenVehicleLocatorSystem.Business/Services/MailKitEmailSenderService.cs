@@ -24,8 +24,10 @@ namespace StolenVehicleLocatorSystem.Business.Services
         public Task Execute(string to, string subject, string message)
         {
             // create message
-            var email = new MimeMessage();
-            email.Sender = MailboxAddress.Parse(Options.SenderEmail);
+            var email = new MimeMessage
+            {
+                Sender = MailboxAddress.Parse(Options.SenderEmail)
+            };
             if (!string.IsNullOrEmpty(Options.SenderName))
                 email.Sender.Name = Options.SenderName;
             email.From.Add(email.Sender);

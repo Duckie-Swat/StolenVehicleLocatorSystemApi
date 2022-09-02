@@ -5,5 +5,6 @@ namespace StolenVehicleLocatorSystem.Contracts.Constants
         public const string Auth = "api/v1/auth";
         public const string Users = "api/v1/users";
         public const string Notifications = "api/v1/notifications";
+        public const string Cameras = "api/v1/cameras";
     }
 }

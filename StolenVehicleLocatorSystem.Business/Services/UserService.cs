@@ -10,6 +10,7 @@ using StolenVehicleLocatorSystem.Contracts.Dtos.User;
 using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
+using StolenVehicleLocatorSystem.Extensions;
 using System.Security.Claims;
 
 
@@ -35,21 +36,27 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
         }
 
-        public Task<int> CountAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<UserDetailDto> GetByEmail(string email)
         {
             return _mapper.Map<UserDetailDto>(await _userManager.FindByEmailAsync(email));
         }
 
-        public async Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserFilter filter)
+        public Task HardRemoveOne(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserSearch filter)
         {
             var query = _userManager.Users;
+            // search
             query = query.Where(user => string.IsNullOrEmpty(filter.Keyword)
-                        || user.Id.ToString().Contains(filter.Keyword) || user.Email.Contains(filter.Keyword));
+                        || user.Id.ToString().Contains(filter.Keyword) 
+                        || user.Email.Contains(filter.Keyword)
+                        );
+            // filter
+            query = query.Where(user => filter.IsDeleted == null
+                        || user.IsDeleted == filter.IsDeleted);
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {
@@ -121,6 +128,31 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 );
                 return _mapper.Map<UserDetailDto>(user);
             }
+        }
+
+        public Task HardRemoveMany(Guid[] userIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RestoreManyAsync(Guid[] ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RestoreOneAsync(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SoftRemoveMany(Guid[] userIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SoftRemoveOne(Guid userId)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest, Guid updateBy)

@@ -4,5 +4,6 @@
     {
         public const int Page = 1;
         public const int Limit = 20;
+        public const bool IsDeleted = false;
     }
 }
