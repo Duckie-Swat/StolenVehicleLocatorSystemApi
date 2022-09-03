@@ -22,6 +22,7 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserToken> UserTokens { get; set; }
         public DbSet<Camera> Cameras { get; set; }
+        public DbSet<LostVehicleRequest> LostVehicleRequests { get; set; }
     }
 }
 

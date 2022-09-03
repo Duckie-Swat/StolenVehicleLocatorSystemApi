@@ -22,6 +22,7 @@ namespace StolenVehicleLocatorSystem.Business
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<INotificationSerivce, NotificationService>();
             services.AddTransient<ICameraService, CameraService>();
+            services.AddTransient<ILostVehicleRequestService, LostVehicleRequestService>();
 
             services.Configure<MailKitEmailSenderOptions>(options =>
             {

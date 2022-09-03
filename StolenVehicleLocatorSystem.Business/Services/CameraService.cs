@@ -34,7 +34,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
         {
             var camera = await _cameras.GetByIdAsync(id);
             if(camera == null)
-                throw new HttpStatusException(System.Net.HttpStatusCode.NotFound, "Camera doesn't exist");
+                throw new HttpStatusException(HttpStatusCode.NotFound, "Camera doesn't exist");
             return _mapper.Map<CameraDto>(camera);
         }
 
@@ -85,6 +85,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
                         || camera.Name.Contains(filter.Keyword)) 
                         && camera.UserId == userId
                         ));
+            // filter
+            query = query.Where(user => filter.IsDeleted == null
+                        || user.IsDeleted == filter.IsDeleted);
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {
