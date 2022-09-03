@@ -15,6 +15,9 @@ namespace StolenVehicleLocatorSystem.Contracts.Filters
         [DefaultValue(DefaultFilterCriteria.Limit)]
         public int Limit { get; set; } = DefaultFilterCriteria.Limit;
 
+        [DefaultValue(DefaultFilterCriteria.IsDeleted)]
+        public bool? IsDeleted { get; set; }
+
         [MaxLength(CommonRules.MaxLenghCharactersForText)]
         public string? Keyword { get; set; }
 
