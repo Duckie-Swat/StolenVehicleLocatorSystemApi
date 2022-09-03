@@ -103,6 +103,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
                         || notification.Title.ToString().Contains(filter.Keyword) ) 
                         && notification.UserId == userId
                         ));
+            // filter
+            query = query.Where(user => filter.IsDeleted == null
+                        || user.IsDeleted == filter.IsDeleted);
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {

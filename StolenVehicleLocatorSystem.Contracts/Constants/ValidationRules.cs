@@ -8,5 +8,10 @@
             public const int MaxLenghCharactersForText = 255;
         }
 
+        public static class PlateNumberRule
+        {
+            public const int MinLenghCharactersForText = 5;
+            public const int MaxLenghCharactersForText = 25;
+        }
     }
 }

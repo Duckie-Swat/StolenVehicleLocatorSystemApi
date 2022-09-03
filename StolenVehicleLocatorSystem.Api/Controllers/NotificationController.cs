@@ -11,9 +11,9 @@ using System.Security.Claims;
 
 namespace StolenVehicleLocatorSystem.Api.Controllers
 {
-    [Authorize]
     [ApiController]
     [Route(Endpoints.Notifications)]
+    [Authorize]
     public class NotificationController : ControllerBase
     {
         private readonly INotificationSerivce _notificationSerivce;

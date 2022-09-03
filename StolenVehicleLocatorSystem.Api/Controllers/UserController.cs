@@ -15,6 +15,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 {
     [ApiController]
     [Route(Endpoints.Users)]
+    [Authorize]
     public class UserController : ControllerBase
     {
 
@@ -22,15 +23,22 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         private readonly UserManager<User> _userManager;
         private readonly INotificationSerivce _notificationSerivce;
         private readonly ICameraService _cameraService;
+        private readonly ILostVehicleRequestService _lostVehicleRequestService;
 
-        public UserController(IUserService userService, UserManager<User> userManager, 
-            INotificationSerivce notificationSerivce, ICameraService cameraService)
+        public UserController(IUserService userService,
+                              UserManager<User> userManager,
+                              INotificationSerivce notificationSerivce,
+                              ICameraService cameraService,
+                              ILostVehicleRequestService lostVehicleRequestService)
         {
             _userService = userService;
             _userManager = userManager;
             _notificationSerivce = notificationSerivce;
             _cameraService = cameraService;
+            _lostVehicleRequestService = lostVehicleRequestService;
         }
+
+
 
         /// <summary>
         /// Search, pagination, sort users
@@ -38,7 +46,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("find")]
-        [Authorize(Roles = $"{RoleTypes.Admin}")]
+        [Authorize(Roles = RoleTypes.Admin)]
         public async Task<IActionResult> FindPagedUsersAsync([FromQuery] UserSearch filter)
         {
             return Ok(await _userService.PagedQueryAsync(filter));
@@ -49,7 +57,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
         [HttpGet("my-account")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetProfile()
@@ -81,7 +88,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <returns></returns>
         /// <exception cref="BadRequestException"></exception>
         [HttpPut("my-account")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -97,6 +103,12 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return NoContent();
         }
 
+        /* 
+            ============================== Notification ==============================
+            ==========================================================================
+            ==========================================================================
+        */
+
         /// <summary>
         /// Update user with specific id
         /// </summary>
@@ -104,7 +116,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="updateUserRequest"></param>
         /// <returns></returns>
         [HttpPut("{UserId}")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -119,7 +130,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         }
 
         [HttpGet("my-account/notifications/find")]
-        [Authorize]
         public async Task<IActionResult> FindPagedNotificationsFromCurrentUser([FromQuery] BaseSearch filter)
         {
             var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
@@ -133,7 +143,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="updateUserRequest"></param>
         /// <returns></returns>
         [HttpPatch("my-account/notifications/{notificationId}/mask")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -148,7 +157,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPatch("my-account/notifications/mask")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -164,7 +172,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="notificationId"></param>
         /// <returns></returns>
         [HttpDelete("my-account/notifications/{notificationId}/soft")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -180,7 +187,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpDelete("my-account/notifications/soft")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -196,7 +202,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="notificationId"></param>
         /// <returns></returns>
         [HttpDelete("my-account/notifications/{notificationId}")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -206,12 +211,19 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             await _notificationSerivce.HardRemoveOne(notificationId, currentUserId);
             return NoContent();
         }
+
+
+        /* 
+            ============================== Camera ==============================
+            ====================================================================
+            ====================================================================
+        */
+
         /// <summary>
         /// Hard remove all notification as read based on  user id 
         /// </summary>
         /// <returns></returns>
         [HttpDelete("my-account/cameras/soft")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -222,13 +234,13 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return NoContent();
         }
 
+
         /// <summary>
         /// List cameras of current user
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("my-account/cameras/find")]
-        [Authorize]
         public async Task<IActionResult> FindPagedCamerasFromCurrentUser([FromQuery] BaseSearch filter)
         {
             var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
@@ -240,7 +252,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="updateCameraDto"></param>
         /// <returns></returns>
         [HttpPatch("my-account/cameras/{cameraId}")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateCameraByIdFromCurrentUser(UpdateCameraDto updateCameraDto)
@@ -252,12 +263,11 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         }
 
         /// <summary>
-        /// 
+        /// soft remove a notificatio based on  user id and cameraId
         /// </summary>
         /// <param name="cameraId"></param>
         /// <returns></returns>
         [HttpDelete("my-account/cameras/{cameraId}/soft")]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> SoftRemoveCameraByIdFromCurrentUser(Guid cameraId)
@@ -267,6 +277,23 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return NoContent();
         }
 
-        
+        /* 
+            ============================== LostVehicleRequest ==============================
+            ================================================================================
+            ================================================================================
+        */
+        /// <summary>
+        /// List cameras of current user
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        [HttpGet("my-account/lost-vehicle-requests/find")]
+        public async Task<IActionResult> FindPagedLostVehicleRequestFromCurrentUser([FromQuery] BaseSearch filter)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            return Ok(await _lostVehicleRequestService.PagedQueryAsyncByUserId(filter, currentUserId));
+        }
+
+
     }
 }

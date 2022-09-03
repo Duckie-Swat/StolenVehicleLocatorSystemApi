@@ -10,6 +10,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 {
     [Route(Endpoints.Cameras)]
     [ApiController]
+    [Authorize]
     public class CameraController : ControllerBase
     {
         private readonly ICameraService _cameraService;
@@ -25,7 +26,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="newCamera"></param>
         /// <returns></returns>
         [HttpPost]
-        [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateNotification(CreateCameraDto newCamera)
@@ -42,7 +42,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("find")]
-        [Authorize]
         public async Task<IActionResult> FindPagedNotifications([FromQuery] BaseSearch filter)
         {
             return Ok(await _cameraService.PagedQueryAsync(filter));
