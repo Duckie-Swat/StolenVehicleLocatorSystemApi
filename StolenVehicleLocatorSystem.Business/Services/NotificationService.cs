@@ -77,6 +77,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var query = _notification.Entities;
             query = query.Where(notification => string.IsNullOrEmpty(filter.Keyword)
                         || notification.Title.ToString().Contains(filter.Keyword));
+            // filter
+            query = query.Where(user => filter.IsDeleted == null
+                        || user.IsDeleted == filter.IsDeleted);
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {

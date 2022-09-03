@@ -59,6 +59,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var query = _cameras.Entities;
             query = query.Where(camera => string.IsNullOrEmpty(filter.Keyword)
                         || camera.Name.Contains(filter.Keyword));
+            // filter
+            query = query.Where(user => filter.IsDeleted == null
+                        || user.IsDeleted == filter.IsDeleted);
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {
