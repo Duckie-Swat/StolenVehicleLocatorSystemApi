@@ -19,7 +19,7 @@ namespace StolenVehicleLocatorSystem.Contracts.Filters
                                               BindingFlags.Instance;
             var memberList = schemaFilterContext.Type 
                                 .GetFields(bindingFlags).Cast<MemberInfo>()
-                                .Concat(schemaFilterContext.Type // In v5.3.3+ use Type instead
+                                .Concat(schemaFilterContext.Type 
                                 .GetProperties(bindingFlags));
 
             var excludedList = memberList.Where(m =>

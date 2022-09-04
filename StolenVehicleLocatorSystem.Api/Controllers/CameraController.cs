@@ -42,6 +42,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("find")]
+        [Authorize(Roles = RoleTypes.Admin)]
         public async Task<IActionResult> FindPagedNotifications([FromQuery] BaseSearch filter)
         {
             return Ok(await _cameraService.PagedQueryAsync(filter));

@@ -1,5 +1,6 @@
 ﻿using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Camera;
+using StolenVehicleLocatorSystem.Contracts.Dtos.CameraDetectedResult;
 using StolenVehicleLocatorSystem.Contracts.Dtos.LostVehicleRequest;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Notification;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
@@ -38,6 +39,10 @@ namespace StolenVehicleLocatorSystem.Business
             // LostVehicleRequest
             CreateMap<LostVehicleRequestDto, LostVehicleRequest>();
             CreateMap<CreateLostVehicleRequestDto, LostVehicleRequest>();
+
+            // CameraDetectedResult
+            CreateMap<CameraDetectedResultDto, CameraDetectedResult>();
+            CreateMap<CreateCameraDetectedResultDto, CameraDetectedResult>();
         }
 
         private void FromDataAccessorLayer()
@@ -47,6 +52,7 @@ namespace StolenVehicleLocatorSystem.Business
             CreateMap<Notification, NotificationDto>();
             CreateMap<Camera, CameraDto>();
             CreateMap<LostVehicleRequest, LostVehicleRequestDto>();
+            CreateMap<CameraDetectedResult, CameraDetectedResultDto>();
         }
     }
 }
