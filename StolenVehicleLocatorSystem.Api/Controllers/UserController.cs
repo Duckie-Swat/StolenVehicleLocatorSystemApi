@@ -24,21 +24,22 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         private readonly INotificationSerivce _notificationSerivce;
         private readonly ICameraService _cameraService;
         private readonly ILostVehicleRequestService _lostVehicleRequestService;
+        private readonly ICameraDetectedResultService _cameraDetectedResultService;
 
         public UserController(IUserService userService,
-                              UserManager<User> userManager,
-                              INotificationSerivce notificationSerivce,
-                              ICameraService cameraService,
-                              ILostVehicleRequestService lostVehicleRequestService)
+            UserManager<User> userManager,
+            INotificationSerivce notificationSerivce,
+            ICameraService cameraService,
+            ILostVehicleRequestService lostVehicleRequestService,
+            ICameraDetectedResultService cameraDetectedResultService)
         {
             _userService = userService;
             _userManager = userManager;
             _notificationSerivce = notificationSerivce;
             _cameraService = cameraService;
             _lostVehicleRequestService = lostVehicleRequestService;
+            _cameraDetectedResultService = cameraDetectedResultService;
         }
-
-
 
         /// <summary>
         /// Search, pagination, sort users
@@ -294,6 +295,23 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return Ok(await _lostVehicleRequestService.PagedQueryAsyncByUserId(filter, currentUserId));
         }
 
+        /* 
+         
+            ============================== CameraDetectedResult ==============================
+            ==================================================================================
+            ==================================================================================
 
+         */
+        /// <summary>
+        /// List camera detected result by cameraId of current user
+        /// </summary>
+        /// <param name="cameraId"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        [HttpGet("my-account/cameras/{cameraId}/camera-detected-result/find")]
+        public async Task<IActionResult> FindPagedCameraDetectedResultsByCameraIdFromCurrentUser(Guid cameraId, [FromQuery] BaseSearch filter)
+        {
+            return Ok(await _cameraDetectedResultService.PagedQueryAsyncByCameraId(filter, cameraId));
+        }
     }
 }

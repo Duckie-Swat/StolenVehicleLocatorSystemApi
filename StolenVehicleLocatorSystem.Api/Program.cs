@@ -35,8 +35,6 @@ namespace StolenVehicleLocatorSystem.Api
                 serializerOptions.WriteIndented = true;
             });
 
-
-
             // Adding Authentication
             builder.Services.AddAuthentication(options =>
             {
@@ -80,8 +78,6 @@ namespace StolenVehicleLocatorSystem.Api
                     }
                 };
             });
-
-
 
             // Cors
             builder.Services.AddCors(options =>
