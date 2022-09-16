@@ -41,6 +41,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateLostVehicleRequest(CreateLostVehicleRequestDto createLostVehicleRequestDto)
         {
+            await _lostVehicleRequestService.CreateAsync(createLostVehicleRequestDto);
             return Created(Endpoints.LostVehicleRequest, null);
         }
     }
