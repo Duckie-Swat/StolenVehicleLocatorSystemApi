@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using StolenVehicleLocatorSystem.Contracts.Attributes;
+using StolenVehicleLocatorSystem.DataAccessor.Constants;
+using System.ComponentModel.DataAnnotations;
 
 namespace StolenVehicleLocatorSystem.Contracts.Dtos.LostVehicleRequest
 {
@@ -18,5 +20,8 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.LostVehicleRequest
         public double Longitude { get; set; }
 
         public string Location { get; set; }
+
+        [SwaggerIgnore]
+        public LostVehicleRequestStatus Status { get; set; } = LostVehicleRequestStatus.PROCESSING;
     }
 }
