@@ -2,17 +2,18 @@
 using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Constants;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
-using StolenVehicleLocatorSystem.Contracts.Dtos.User;
 using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Models;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace StolenVehicleLocatorSystem.Business.Services
 {
@@ -23,7 +24,6 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly IMapper _mapper;
         private readonly ILogger<AuthService> _logger;
         private readonly IConfiguration _configuration;
-        private readonly IEmailSender _emailSender;
         private readonly IMailKitEmailService _mailKitEmailService;
         private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
         private readonly IUserTokenService _userTokenService;
@@ -34,7 +34,6 @@ namespace StolenVehicleLocatorSystem.Business.Services
             ILogger<AuthService> logger,
             IConfiguration configuration,
             IUserTokenService userTokenService,
-            IEmailSender emailSender,
             IMailKitEmailService mailKitEmailService,
             ITokenService tokenService
             )
@@ -46,7 +45,6 @@ namespace StolenVehicleLocatorSystem.Business.Services
             _logger = logger;
             _configuration = configuration;
             _userTokenService = userTokenService;
-            _emailSender = emailSender;
             _mailKitEmailService = mailKitEmailService;
             _tokenService = tokenService;
         }
@@ -57,7 +55,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
             if (user != null && await _userManager.CheckPasswordAsync(user, loginUser.Password))
             {
                 var authClaims = await _userManager.GetClaimsAsync(user);
-                var token = _tokenService.CreateAccessToken(authClaims);
+                _ = double.TryParse(_configuration["JWT:TokenValidityInMinutes"], out double tokenValidityInMinutes);
+                var token = _tokenService.CreateAccessToken(authClaims, tokenValidityInMinutes);
                 var refreshToken = _tokenService.GenerateRefreshToken();
 
                 _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
@@ -80,13 +79,13 @@ namespace StolenVehicleLocatorSystem.Business.Services
                     RefreshTokenExpiration = userToken.RefreshTokenExpiryTime,
                     User = new
                     {
-                        Id = user.Id,
+                        user.Id,
                         DisplayName = user.FirstName + " " + user.LastName,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        Email = user.Email,
-                        PhoneNumber = user.PhoneNumber,
-                        DateOfBirth = user.DateOfBirth
+                        user.FirstName,
+                        user.LastName,
+                        user.Email,
+                        user.PhoneNumber,
+                        user.DateOfBirth
                     }
                 };
 
@@ -95,7 +94,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             throw new BadRequestException("username or password is not correct");
         }
 
-        public async Task<RegisterUserResponseDto> Register(RegisterUserDto newUser)
+        public async Task<TokenResponse> Register(RegisterUserDto newUser)
         {
             string role = "Customer";
             var userCheck = await _userManager.FindByEmailAsync(newUser.Email);
@@ -131,12 +130,11 @@ namespace StolenVehicleLocatorSystem.Business.Services
             await _userManager.AddClaimsAsync(user, authClaims);
             await SendVerifyEmailAsync(user.Email);
 
-            return new RegisterUserResponseDto
+            return await Login(new LoginUserDto
             {
-                Data = _mapper.Map<UserDetailDto>(user),
-                Errors = null
-            };
-
+                Email = newUser.Email,
+                Password = newUser.Password
+            });
         }
 
         public async Task SendVerifyEmailAsync(string email)
@@ -144,7 +142,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var user = await _userManager.FindByEmailAsync(email);
             var authClaims = await _userManager.GetClaimsAsync(user);
 
-            var token = _tokenService.CreateAccessToken(authClaims);
+            var token = _tokenService.CreateAccessToken(authClaims, 60);
 
             var emailSubject = "Verify Your Email";
             string filePath = Path.Combine(new string[]
@@ -154,12 +152,54 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 "WelcomeTemplate.html"
             });
 
-            await _mailKitEmailService.SendWelcomeEmailAsync(new WelcomeRequest
+            await _mailKitEmailService.SendWelcomeEmailAsync(new WelcomeResponse
             {
                 Subject = emailSubject,
                 To = user.Email,
                 VerifyEmailUrl = $"{_configuration["Jwt:ValidIssuer"]}/{Endpoints.Auth}/verify-email?token={_jwtSecurityTokenHandler.WriteToken(token)}"
             }, filePath);
+        }
+
+        private string GeneratePassword()
+        {
+            var options = _userManager.Options.Password;
+
+            int length = options.RequiredLength;
+
+            bool nonAlphanumeric = options.RequireNonAlphanumeric;
+            bool digit = options.RequireDigit;
+            bool lowercase = options.RequireLowercase;
+            bool uppercase = options.RequireUppercase;
+            
+            StringBuilder password = new StringBuilder();
+            Random random = new Random();
+
+            while (password.Length < length)
+            {
+                char c = (char)random.Next(32, 126);
+
+                password.Append(c);
+
+                if (char.IsDigit(c))
+                    digit = false;
+                else if (char.IsLower(c))
+                    lowercase = false;
+                else if (char.IsUpper(c))
+                    uppercase = false;
+                else if (!char.IsLetterOrDigit(c))
+                    nonAlphanumeric = false;
+            }
+
+            if (nonAlphanumeric)
+                password.Append((char)random.Next(33, 48));
+            if (digit)
+                password.Append((char)random.Next(48, 58));
+            if (lowercase)
+                password.Append((char)random.Next(97, 123));
+            if (uppercase)
+                password.Append((char)random.Next(65, 91));
+
+            return password.ToString();
         }
 
         public async Task<bool> VerifyEmail(string email)
@@ -206,6 +246,44 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 return true;
             else
                 return false;
+        }
+
+        public async Task SendResetPasswordAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var emailSubject = "Reset your password";
+            string filePath = Path.Combine(new string[]
+            {
+                Directory.GetCurrentDirectory(),
+                "Templates",
+                "ResetPasswordTemplate.html"
+            });
+            string randomPassword = GeneratePassword();
+
+            await _mailKitEmailService.SendResetPasswordEmailAsync(new ResetEmailResponse
+            {
+                Subject = emailSubject,
+                To = user.Email,
+                ResetPasswordUrl = $"{_configuration["Jwt:ValidIssuer"]}/{Endpoints.Auth}/reset-password/accept?token={WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token))}&email={user.Email}&password={WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(randomPassword))}",
+                NewPassword = randomPassword
+            }, filePath);
+        }
+
+        public async Task ResetPassword(string token, string email, string password)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                throw new BadRequestException("User doesn't exist");
+            token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+            password = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(password));
+            var result = await _userManager.ResetPasswordAsync(user, token, password);
+            if (result.Errors.Any())
+            {
+                throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
+            }
         }
     }
 }

@@ -55,12 +55,12 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             {
                 User = new
                 {
-                    Id = user.Id,
+                    user.Id,
                     DisplayName = user.FirstName + " " + user.LastName,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
+                    user.FirstName,
+                    user.LastName,
                     Email = email.Value,
-                    PhoneNumber = user.PhoneNumber
+                    user.PhoneNumber
                 }
             });
         }
@@ -97,6 +97,33 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
                 return BadRequest("Claim is not valid");
             await _authService.SendVerifyEmailAsync(email.Value);
             return Ok();
+        }
+        /// <summary>
+        /// Forgot Password
+        /// </summary>
+        /// <param name="resetPasswordDto"></param>
+        /// <returns></returns>
+        [HttpPost("reset-password")]              
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto resetPasswordDto)
+        {
+            var user = await _userService.GetByEmail(resetPasswordDto.Email);
+            if (user != null)
+                await _authService.SendResetPasswordAsync(user.Email);
+            return Ok();
+        }
+        /// <summary>
+        /// Accept new password assigned
+        /// </summary>
+        /// <param name="token"></param>
+        /// <param name="email"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        /// <exception cref="BadRequestException"></exception>
+        [HttpGet("reset-password/accept")]
+        public async Task<IActionResult> AcceptResetPassword(string token, string email, string password)
+        {
+            await _authService.ResetPassword(token, email, password);
+            return Ok("Password reset successfully");
         }
 
         /// <summary>

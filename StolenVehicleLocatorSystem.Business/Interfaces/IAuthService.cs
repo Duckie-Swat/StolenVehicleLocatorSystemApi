@@ -1,13 +1,11 @@
 ﻿using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
-using StolenVehicleLocatorSystem.Contracts.Dtos.User;
 using StolenVehicleLocatorSystem.Contracts.Models;
-using System.Security.Claims;
 
 namespace StolenVehicleLocatorSystem.Business.Interfaces
 {
     public interface IAuthService
     {
-        Task<RegisterUserResponseDto> Register(RegisterUserDto newUser);
+        Task<TokenResponse> Register(RegisterUserDto newUser);
 
         Task<TokenResponse> Login(LoginUserDto loginUser);
 
@@ -18,6 +16,10 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
         Task<bool> IsVerify(string email);
 
         Task SendVerifyEmailAsync(string email);
+
+        Task SendResetPasswordAsync(string email);
+
+        Task ResetPassword(string token, string email, string password);
 
         Task<bool> IsRefreshTokenValid(string refreshToken, Guid userId);
     }

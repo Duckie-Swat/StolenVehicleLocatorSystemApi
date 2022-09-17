@@ -5,7 +5,7 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 {
     public interface ITokenService
     {
-        JwtSecurityToken CreateAccessToken(IList<Claim> authClaims);
+        JwtSecurityToken CreateAccessToken(IList<Claim> authClaims, double tokenValidityInMinutes);
         string GenerateRefreshToken();
         ClaimsPrincipal? GetPrincipalFromToken(string token, bool isExpired);
     }

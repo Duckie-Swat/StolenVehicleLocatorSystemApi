@@ -47,15 +47,26 @@ namespace StolenVehicleLocatorSystem.Business.Services
             return Task.FromResult(true);
         }
 
-        public Task SendWelcomeEmailAsync(WelcomeRequest request, string filePathTemplate)
+        public Task SendWelcomeEmailAsync(WelcomeResponse res, string filePathTemplate)
         {
             StreamReader str = new StreamReader(filePathTemplate);
             string MailText = str.ReadToEnd();
             str.Close();
-            MailText = MailText.Replace("{{action_url}}", request.VerifyEmailUrl)
-                                .Replace("{{receiver_email}}", request.To)
+            MailText = MailText.Replace("{{action_url}}", res.VerifyEmailUrl)
+                                .Replace("{{receiver_email}}", res.To)
                                 ;
-            return Execute(request.To, request.Subject, MailText);
+            return Execute(res.To, res.Subject, MailText);
+        }
+
+        public Task SendResetPasswordEmailAsync(ResetEmailResponse res, string filePathTemplate)
+        {
+            StreamReader str = new StreamReader(filePathTemplate);
+            string MailText = str.ReadToEnd();
+            str.Close();
+            MailText = MailText.Replace("{{action_url}}", res.ResetPasswordUrl)
+                                .Replace("{{new_password}}", res.NewPassword)
+                                ;
+            return Execute(res.To, res.Subject, MailText);
         }
     }
 }
