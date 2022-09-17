@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System;
+using StolenVehicleLocatorSystem.DataAccessor.Constants;
 
 namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 {
@@ -16,6 +17,8 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
         public double Longitude { get; set; }
 
         public string Location { get; set; }
+
+        public LostVehicleRequestStatus Status { get; set; }
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }

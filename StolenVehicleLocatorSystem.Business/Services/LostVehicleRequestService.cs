@@ -6,6 +6,7 @@ using StolenVehicleLocatorSystem.Contracts;
 using StolenVehicleLocatorSystem.Contracts.Dtos.LostVehicleRequest;
 using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
+using StolenVehicleLocatorSystem.DataAccessor.Constants;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using StolenVehicleLocatorSystem.DataAccessor.Interfaces;
 using StolenVehicleLocatorSystem.Extensions;
@@ -26,8 +27,11 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
         public async Task<LostVehicleRequestDto> CreateAsync(CreateLostVehicleRequestDto createLostVehicleRequest)
         {
-            var lostVehicleRequest = _mapper.Map<LostVehicleRequest>(createLostVehicleRequest);
-            return _mapper.Map<LostVehicleRequestDto>(await _lostVehicleRequest.AddAsync(lostVehicleRequest));
+            var query = _lostVehicleRequest.Entities;
+            if(query.Any(req => req.PlateNumber == createLostVehicleRequest.PlateNumber && req.Status == LostVehicleRequestStatus.PROCESSING))
+                throw new BadRequestException("This vehicle has already procced");
+            var newLostVehicleRequest = _mapper.Map<LostVehicleRequest>(createLostVehicleRequest);
+            return _mapper.Map<LostVehicleRequestDto>(await _lostVehicleRequest.AddAsync(newLostVehicleRequest));
         }
 
         public async Task HardRemoveAll(Guid userId)
