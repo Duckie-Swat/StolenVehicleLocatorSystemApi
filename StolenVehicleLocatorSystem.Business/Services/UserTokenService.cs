@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Dtos.Auth;
 using StolenVehicleLocatorSystem.Contracts.Exceptions;
@@ -15,14 +16,17 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly IBaseRepository<UserToken> _userToken;
         private readonly IMapper _mapper;
         private readonly ITokenService _tokenService;
+        private readonly IConfiguration _configuration;
 
 
         public UserTokenService(IBaseRepository<UserToken> userToken,
-            IMapper mapper, ITokenService tokenService)
+            IMapper mapper, ITokenService tokenService, IConfiguration configuration
+            )
         {
             _userToken = userToken;
             _mapper = mapper;
             _tokenService = tokenService;
+            _configuration = configuration;
         }
 
         public async Task<bool> CreateUserToken(CreateUserTokenDto createUserTokenDto)
@@ -88,7 +92,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 throw new BadRequestException("Refresh token is expired");
             }
 
-            var newAccessToken = _tokenService.CreateAccessToken(claimsPrincipal.Claims.ToList());
+            _ = double.TryParse(_configuration["JWT:TokenValidityInMinutes"], out double tokenValidityInMinutes);
+            var newAccessToken = _tokenService.CreateAccessToken(claimsPrincipal.Claims.ToList(),tokenValidityInMinutes);
             var newRefreshToken = _tokenService.GenerateRefreshToken();
 
             userToken.RefreshToken = newRefreshToken;

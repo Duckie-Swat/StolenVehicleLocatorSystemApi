@@ -4,6 +4,7 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 {
     public interface IMailKitEmailService
     {
-        Task SendWelcomeEmailAsync(WelcomeRequest request, string filePathTemplate);
+        Task SendWelcomeEmailAsync(WelcomeResponse res, string filePathTemplate);
+        Task SendResetPasswordEmailAsync(ResetEmailResponse res, string filePathTemplate);
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace StolenVehicleLocatorSystem.Contracts.Models
 {
-    public class WelcomeRequest : BaseEmailRequest
+    public class WelcomeResponse : BaseEmailResponse
     {
         public string VerifyEmailUrl { get; set; }
     }

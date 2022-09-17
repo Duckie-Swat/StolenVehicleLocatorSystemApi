@@ -17,10 +17,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
             _configuration = configuration;
             _securityTokenValidator = securityTokenValidator;
         }
-        public JwtSecurityToken CreateAccessToken(IList<Claim> authClaims)
+        public JwtSecurityToken CreateAccessToken(IList<Claim> authClaims, double tokenValidityInMinutes)
         {
             var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
-            _ = int.TryParse(_configuration["JWT:TokenValidityInMinutes"], out int tokenValidityInMinutes);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:ValidIssuer"],
