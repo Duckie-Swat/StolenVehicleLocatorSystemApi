@@ -68,6 +68,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
             }
 
+            query = query.Include(x => x.User);
+
             var cameras = await query.PaginateAsync(filter.Page, filter.Limit);
             return new PagedResponseModel<CameraDto>
             {
