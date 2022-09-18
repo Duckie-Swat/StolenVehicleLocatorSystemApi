@@ -61,6 +61,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
             }
 
+            query = query.Include(q => q.User);
+
             var lostVehicleRequests = await query.PaginateAsync(filter.Page, filter.Limit);
             return new PagedResponseModel<LostVehicleRequestDto>
             {

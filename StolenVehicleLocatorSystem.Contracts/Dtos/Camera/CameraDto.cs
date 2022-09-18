@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using StolenVehicleLocatorSystem.Contracts.Dtos.User;
+using System.ComponentModel.DataAnnotations;
 
 namespace StolenVehicleLocatorSystem.Contracts.Dtos.Camera
 {
@@ -7,6 +8,8 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.Camera
         public Guid UserId { get; set; }
 
         [MaxLength(Constants.ValidationRules.CommonRules.MaxLenghCharactersForText)]
-        public string? Name { get; set; } 
+        public string? Name { get; set; }
+
+        public UserDetailDto User { get; set; }
     }
 }
