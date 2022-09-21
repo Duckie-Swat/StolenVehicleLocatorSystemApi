@@ -135,24 +135,68 @@ namespace StolenVehicleLocatorSystem.Business.Services
             throw new NotImplementedException();
         }
 
-        public Task RestoreManyAsync(Guid[] ids)
+        public async Task RestoreManyAsync(Guid[] ids)
         {
-            throw new NotImplementedException();
+            List<User> users = new();
+            foreach (Guid id in ids)
+            {
+                var user = await _userManager.FindByIdAsync(id.ToString());
+                if (user == null)
+                    throw new BadRequestException("This user doesn't exist");
+                user.IsDeleted = false;
+                users.Add(user);
+            }
+            Task[] tasks = new Task[users.Count];
+            for (int i = 0; i < users.Count; i++)
+            {
+                tasks[i] = _userManager.UpdateAsync(users[i]);
+            }
+            await Task.WhenAll(tasks);
         }
 
-        public Task RestoreOneAsync(Guid id)
+        public async Task RestoreOneAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+                throw new BadRequestException("This user doesn't exist");
+            user.IsDeleted = false;
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Errors.Any())
+            {
+                throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
+            }
         }
 
-        public Task SoftRemoveMany(Guid[] userIds)
+        public async Task SoftRemoveMany(Guid[] userIds)
         {
-            throw new NotImplementedException();
+            List<User> users = new ();
+            foreach (Guid id in userIds)
+            {
+                var user = await _userManager.FindByIdAsync(id.ToString());
+                if (user == null)
+                    throw new BadRequestException("This user doesn't exist");
+                user.IsDeleted = true;
+                users.Add(user);
+            }
+            Task[] tasks = new Task[users.Count];
+            for (int i = 0; i < users.Count; i++)
+            {
+                tasks[i] = _userManager.UpdateAsync(users[i]);
+            }
+            await Task.WhenAll(tasks);
         }
 
-        public Task SoftRemoveOne(Guid userId)
+        public async Task SoftRemoveOne(Guid userId)
         {
-            throw new NotImplementedException();
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if(user == null)
+                throw new BadRequestException("This user doesn't exist");
+            user.IsDeleted = true;
+            var result =  await _userManager.UpdateAsync(user);
+            if (result.Errors.Any())
+            {
+                throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
+            }
         }
 
         public async Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest, Guid updateBy)

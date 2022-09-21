@@ -11,9 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Constants\**" />
     <Compile Remove="Validators\**" />
+    <Content Remove="Constants\**" />
     <Content Remove="Validators\**" />
+    <EmbeddedResource Remove="Constants\**" />
     <EmbeddedResource Remove="Validators\**" />
+    <None Remove="Constants\**" />
     <None Remove="Validators\**" />
   </ItemGroup>
 
@@ -33,10 +37,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Constants\" />
   </ItemGroup>
 
   <ItemGroup>

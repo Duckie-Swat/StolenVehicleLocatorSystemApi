@@ -52,6 +52,33 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         {
             return Ok(await _userService.PagedQueryAsync(filter));
         }
+
+        /// <summary>
+        /// Soft delete user with specificed id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpDelete("{userId}/soft")]
+        [Authorize(Roles = RoleTypes.Admin)]
+        public async Task<IActionResult> SoftDeleteUserAsync(Guid userId)
+        {
+            await _userService.SoftRemoveOne(userId);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Restore a user with specificed id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpPatch("{userId}/restore")]
+        [Authorize(Roles = RoleTypes.Admin)]
+        public async Task<IActionResult> RestoreUserAsync(Guid userId)
+        {
+            await _userService.RestoreOneAsync(userId);
+            return NoContent();
+        }
+
         /// <summary>
         /// Get current profile
         /// </summary>

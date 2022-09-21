@@ -12,6 +12,7 @@ using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Models;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -52,44 +53,47 @@ namespace StolenVehicleLocatorSystem.Business.Services
         public async Task<TokenResponse> Login(LoginUserDto loginUser)
         {
             var user = await _userManager.FindByEmailAsync(loginUser.Email);
-            if (user != null && await _userManager.CheckPasswordAsync(user, loginUser.Password))
-            {
-                var authClaims = await _userManager.GetClaimsAsync(user);
-                _ = double.TryParse(_configuration["JWT:TokenValidityInMinutes"], out double tokenValidityInMinutes);
-                var token = _tokenService.CreateAccessToken(authClaims, tokenValidityInMinutes);
-                var refreshToken = _tokenService.GenerateRefreshToken();
-
-                _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
-
-                var userToken = new CreateUserTokenDto
-                {
-                    RefreshToken = refreshToken,
-                    Platform = "Test",
-                    RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays),
-                    UserId = user.Id
-                };
-                await _userTokenService.CreateUserToken(userToken);
-
-                return new TokenResponse
-                {
-
-                    RefreshToken = refreshToken,
-                    AccessToken = _jwtSecurityTokenHandler.WriteToken(token),
-                    AccessTokenExpiration = token.ValidTo,
-                    RefreshTokenExpiration = userToken.RefreshTokenExpiryTime,
-                    User = new
+            if(user != null) { 
+                if(user.IsDeleted)
+                    throw new HttpStatusException(HttpStatusCode.Forbidden, "This user deleted. Please contact admin to solve this problem.");
+                if (await _userManager.CheckPasswordAsync(user, loginUser.Password))
                     {
-                        user.Id,
-                        DisplayName = user.FirstName + " " + user.LastName,
-                        user.FirstName,
-                        user.LastName,
-                        user.Email,
-                        user.PhoneNumber,
-                        user.DateOfBirth
-                    }
-                };
+                        var authClaims = await _userManager.GetClaimsAsync(user);
+                        _ = double.TryParse(_configuration["JWT:TokenValidityInMinutes"], out double tokenValidityInMinutes);
+                        var token = _tokenService.CreateAccessToken(authClaims, tokenValidityInMinutes);
+                        var refreshToken = _tokenService.GenerateRefreshToken();
 
-            }
+                        _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
+
+                        var userToken = new CreateUserTokenDto
+                        {
+                            RefreshToken = refreshToken,
+                            Platform = "Test",
+                            RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays),
+                            UserId = user.Id
+                        };
+                        await _userTokenService.CreateUserToken(userToken);
+
+                        return new TokenResponse
+                        {
+
+                            RefreshToken = refreshToken,
+                            AccessToken = _jwtSecurityTokenHandler.WriteToken(token),
+                            AccessTokenExpiration = token.ValidTo,
+                            RefreshTokenExpiration = userToken.RefreshTokenExpiryTime,
+                            User = new
+                            {
+                                user.Id,
+                                DisplayName = user.FirstName + " " + user.LastName,
+                                user.FirstName,
+                                user.LastName,
+                                user.Email,
+                                user.PhoneNumber,
+                                user.DateOfBirth
+                            }
+                        };
+                    }
+                }
 
             throw new BadRequestException("username or password is not correct");
         }
