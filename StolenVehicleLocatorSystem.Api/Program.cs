@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StolenVehicleLocatorSystem.Api.Extensions;
 using StolenVehicleLocatorSystem.Api.Hubs;
 using StolenVehicleLocatorSystem.Api.Hubs.Providers;
 using StolenVehicleLocatorSystem.Business;
@@ -147,6 +148,7 @@ namespace StolenVehicleLocatorSystem.Api
             app.UseAuthorization();
             app.UseWebSockets();
 
+            app.UseValidUserLogin();
 
             app.MapHub<MessageHub>("/hubs/messages");
             app.MapHub<NotificationHub>("/hubs/notifications");
