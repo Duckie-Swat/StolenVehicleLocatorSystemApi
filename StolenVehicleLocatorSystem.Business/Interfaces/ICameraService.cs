@@ -15,5 +15,6 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
         Task SoftRemoveAll(Guid userId);
         Task HardRemoveOne(Guid cameraId, Guid userId);
         Task HardRemoveAll(Guid userId);
+        Task<bool> IsExist(Guid cameraId);
     }
 }

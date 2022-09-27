@@ -54,6 +54,12 @@ namespace StolenVehicleLocatorSystem.Business.Services
             await _cameras.DeleteAsync(camera.Id);
         }
 
+        public async Task<bool> IsExist(Guid cameraId)
+        {
+            var camera = await _cameras.GetByIdAsync(cameraId);
+            return camera != null;
+        }
+
         public async Task<PagedResponseModel<CameraDto>> PagedQueryAsync(BaseSearch filter)
         {
             var query = _cameras.Entities;

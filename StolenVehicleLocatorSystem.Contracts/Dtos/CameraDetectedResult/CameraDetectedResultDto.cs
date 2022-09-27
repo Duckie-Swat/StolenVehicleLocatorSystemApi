@@ -1,4 +1,6 @@
-﻿namespace StolenVehicleLocatorSystem.Contracts.Dtos.CameraDetectedResult
+﻿using StolenVehicleLocatorSystem.Contracts.Dtos.Camera;
+
+namespace StolenVehicleLocatorSystem.Contracts.Dtos.CameraDetectedResult
 {
     public class CameraDetectedResultDto : BaseDto
     {
@@ -11,5 +13,7 @@
         public string Location { get; set; }
 
         public string Photo { get; set; }
+
+        public CameraDto Camera { get; set; }
     }
 }

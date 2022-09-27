@@ -3,10 +3,12 @@ using StolenVehicleLocatorSystem.Business.Extensions;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts;
 using StolenVehicleLocatorSystem.Contracts.Dtos.CameraDetectedResult;
+using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using StolenVehicleLocatorSystem.DataAccessor.Interfaces;
 using StolenVehicleLocatorSystem.Extensions;
+using System.Net;
 
 namespace StolenVehicleLocatorSystem.Business.Services
 {
@@ -14,15 +16,23 @@ namespace StolenVehicleLocatorSystem.Business.Services
     {
         private readonly IMapper _mapper;
         private readonly IBaseRepository<CameraDetectedResult> _cameraDetectedResult;
+        private readonly ICameraService _cameraService;
 
-        public CameraDetectedResultService(IMapper mapper, IBaseRepository<CameraDetectedResult> cameraDetectedResult)
+        public CameraDetectedResultService(IMapper mapper,
+            IBaseRepository<CameraDetectedResult> cameraDetectedResult,
+            ICameraService cameraService
+            )
         {
             _mapper = mapper;
             _cameraDetectedResult = cameraDetectedResult;
+            _cameraService = cameraService;
         }
 
         public async Task<CameraDetectedResultDto> CreateAsync(CreateCameraDetectedResultDto createCameraDetectedResultDto)
         {
+            bool isCameraExist = await _cameraService.IsExist(createCameraDetectedResultDto.CameraId);
+            if (!isCameraExist)
+                throw new HttpStatusException(HttpStatusCode.NotFound, "This camera is not exist");
             var cameraDetectedResult = _mapper.Map<CameraDetectedResult>(createCameraDetectedResultDto);
             return _mapper.Map<CameraDetectedResultDto>(await _cameraDetectedResult.AddAsync(cameraDetectedResult));
         }

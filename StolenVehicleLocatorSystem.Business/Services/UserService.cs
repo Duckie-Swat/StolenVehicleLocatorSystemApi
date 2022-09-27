@@ -215,6 +215,12 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
             }
         }
+
+        public async Task<bool> IsExist(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            return user != null;
+        }
     }
 
 }

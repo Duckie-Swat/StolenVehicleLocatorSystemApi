@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Constants;
+using StolenVehicleLocatorSystem.Contracts.Dtos.CameraDetectedResult;
 using StolenVehicleLocatorSystem.Contracts.Filters;
 
 namespace StolenVehicleLocatorSystem.Api.Controllers
@@ -30,16 +31,17 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return Ok(await _cameraDetectedResultService.PagedQueryAsync(filter));
         }
         /// <summary>
-        /// 
+        /// Create new Camera Detected Result
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateCameraDetectedResult([FromQuery] BaseSearch filter)
+        public async Task<IActionResult> CreateCameraDetectedResult(CreateCameraDetectedResultDto createCameraDetectedResultDto)
         {
-            return Created(Endpoints.CameraDetectedResult, null);
+            var cameraDetectedResultDto = await _cameraDetectedResultService.CreateAsync(createCameraDetectedResultDto);
+            return Created(Endpoints.CameraDetectedResult, cameraDetectedResultDto);
         }
     }
 }

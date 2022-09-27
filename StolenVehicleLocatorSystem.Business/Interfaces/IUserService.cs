@@ -20,11 +20,14 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
         Task RestoreManyAsync(Guid[] ids);
 
         Task SoftRemoveOne(Guid userId);
+
         Task SoftRemoveMany(Guid[] userIds);
 
         Task HardRemoveOne(Guid userId);
 
         Task HardRemoveMany(Guid[] userIds);
+
+        Task<bool> IsExist(Guid userId);
 
     }
 }
