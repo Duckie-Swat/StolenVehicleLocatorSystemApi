@@ -25,8 +25,8 @@ namespace StolenVehicleLocatorSystem.Api
             // Add Business layer
             builder.Services.AddBusinessLayer(configuration);
             
-            if(args.Contains("/seed"))
-                SeedData.EnsureSeedData(builder.Services);
+            
+            SeedData.EnsureSeedData(builder.Services);
 
             builder.Services.AddControllers().AddJsonOptions(opt =>
             {

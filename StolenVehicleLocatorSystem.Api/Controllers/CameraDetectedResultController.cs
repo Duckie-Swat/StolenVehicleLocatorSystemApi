@@ -40,6 +40,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCameraDetectedResult(CreateCameraDetectedResultDto createCameraDetectedResultDto)
         {
+
             var cameraDetectedResultDto = await _cameraDetectedResultService.CreateAsync(createCameraDetectedResultDto);
             return Created(Endpoints.CameraDetectedResult, cameraDetectedResultDto);
         }
