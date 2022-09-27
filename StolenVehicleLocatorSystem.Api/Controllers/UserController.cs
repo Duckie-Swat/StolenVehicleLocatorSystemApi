@@ -54,6 +54,19 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         }
 
         /// <summary>
+        /// Soft delete many users
+        /// </summary>
+        /// <param name="deleteUserDto"></param>
+        /// <returns></returns>
+        [HttpDelete("soft")]
+        [Authorize(Roles = RoleTypes.Admin)]
+        public async Task<IActionResult> SoftDeleteUsersAsync(DeleteUserDto deleteUserDto)
+        {
+            await _userService.SoftRemoveMany(deleteUserDto.UserIds);
+            return NoContent();
+        }
+
+        /// <summary>
         /// Soft delete user with specificed id
         /// </summary>
         /// <param name="userId"></param>
@@ -63,6 +76,32 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         public async Task<IActionResult> SoftDeleteUserAsync(Guid userId)
         {
             await _userService.SoftRemoveOne(userId);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Hard delete users
+        /// </summary>
+        /// <param name="deleteUserDto"></param>
+        /// <returns></returns>
+        [HttpDelete("hard")]
+        [Authorize(Roles = RoleTypes.Admin)]
+        public async Task<IActionResult> HardDeleteUsersAsync(DeleteUserDto deleteUserDto)
+        {
+            await _userService.HardRemoveMany(deleteUserDto.UserIds);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Hard delete user with specificed id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpDelete("{userId}/hard")]
+        [Authorize(Roles = RoleTypes.Admin)]
+        public async Task<IActionResult> HardDeleteUserAsync(Guid userId)
+        {
+            await _userService.HardRemoveOne(userId);
             return NoContent();
         }
 
