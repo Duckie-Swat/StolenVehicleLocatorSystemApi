@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using IdentityModel;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -15,6 +14,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace StolenVehicleLocatorSystem.Business.Services
 {
@@ -29,6 +30,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
         private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
         private readonly IUserTokenService _userTokenService;
         private readonly ITokenService _tokenService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public AuthService(UserManager<User> userManager,
             RoleManager<Role> roleManager, IMapper mapper,
@@ -36,7 +38,8 @@ namespace StolenVehicleLocatorSystem.Business.Services
             IConfiguration configuration,
             IUserTokenService userTokenService,
             IMailKitEmailService mailKitEmailService,
-            ITokenService tokenService
+            ITokenService tokenService,
+            IHttpClientFactory httpClientFactory
             )
         {
             _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
@@ -48,7 +51,24 @@ namespace StolenVehicleLocatorSystem.Business.Services
             _userTokenService = userTokenService;
             _mailKitEmailService = mailKitEmailService;
             _tokenService = tokenService;
+            _httpClientFactory = httpClientFactory;
         }
+
+        private async Task<bool> VerifyGoogleRecaptcha(VerifyCaptchaModel verifyCaptchaModel)
+        {
+            string requestUri = $"https://www.google.com/recaptcha/api/siteverify?secret={verifyCaptchaModel.Secret}&response={verifyCaptchaModel.Response}";
+            var httpClient = _httpClientFactory.CreateClient();
+            var httpResponseMessage = await httpClient.PostAsync(requestUri, null);
+            string result = await httpResponseMessage.Content.ReadAsStringAsync();
+
+            using (JsonDocument doc = JsonDocument.Parse(result))
+            {
+                JsonElement root = doc.RootElement;
+                var success = root.GetProperty("success").ToString();
+                return success == "True";
+            }
+        }
+
 
         public async Task<TokenResponse> Login(LoginUserDto loginUser)
         {
@@ -56,6 +76,14 @@ namespace StolenVehicleLocatorSystem.Business.Services
             if(user != null) { 
                 if(user.IsDeleted)
                     throw new HttpStatusException(HttpStatusCode.Forbidden, "This user deleted. Please contact admin to solve this problem.");
+                if(!(await VerifyGoogleRecaptcha(new VerifyCaptchaModel
+                {
+                    Response = loginUser.ResponseCaptchaToken,
+                    Secret = _configuration["ExternalProviders:Google:RecaptchaV2SecretKey"]
+                })))
+                {
+                    throw new BadRequestException("Recaptcha code is not valid or expire");
+                }
                 if (await _userManager.CheckPasswordAsync(user, loginUser.Password))
                     {
                         var authClaims = await _userManager.GetClaimsAsync(user);
@@ -110,6 +138,15 @@ namespace StolenVehicleLocatorSystem.Business.Services
             else if (roleCheck == null)
             {
                 throw new BadRequestException("Role is not exist");
+            }
+
+            if (!(await VerifyGoogleRecaptcha(new VerifyCaptchaModel
+            {
+                Response = newUser.ResponseCaptchaToken,
+                Secret = _configuration["ExternalProviders:Google:RecaptchaV2SecretKey"]
+            })))
+            {
+                throw new BadRequestException("Recaptcha code is not valid or expire");
             }
 
             var user = _mapper.Map<User>(newUser);

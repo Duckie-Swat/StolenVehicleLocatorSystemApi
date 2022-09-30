@@ -24,5 +24,7 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.Auth
 
         [Required]
         public DateTime DateOfBirth { get; set; }
+
+        public string ResponseCaptchaToken { get; set; }
     }
 }
