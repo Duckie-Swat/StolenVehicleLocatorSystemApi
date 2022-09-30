@@ -16,5 +16,7 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.Auth
         [MaxLength(32)]
         [DefaultValue("Str0ng!Passw0rd")]
         public string Password { get; set; }
+
+        public string ResponseCaptchaToken { get; set; }
     }
 }
