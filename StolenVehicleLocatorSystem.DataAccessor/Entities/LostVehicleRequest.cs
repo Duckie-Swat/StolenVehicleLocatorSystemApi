@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System;
 using StolenVehicleLocatorSystem.DataAccessor.Constants;
+using System.Collections.Generic;
 
 namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 {
@@ -22,5 +23,7 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Entities
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
+
+        public virtual IEnumerable<CameraDetectedResult> CameraDetectedResults { get; set; }
     }
 }

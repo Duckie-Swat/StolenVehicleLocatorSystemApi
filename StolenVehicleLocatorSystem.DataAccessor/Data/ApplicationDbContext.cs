@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System;
-using System.Reflection.Emit;
-using System.Reflection.Metadata;
 
 namespace StolenVehicleLocatorSystem.DataAccessor.Data
 {
@@ -16,7 +13,7 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-           
+            builder.Entity<LostVehicleRequest>().HasIndex(u => u.PlateNumber).IsUnique();
         }
 
         public DbSet<Notification> Notifications { get; set; }

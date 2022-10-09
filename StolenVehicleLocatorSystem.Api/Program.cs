@@ -11,6 +11,7 @@ using StolenVehicleLocatorSystem.Contracts.Filters;
 using StolenVehicleLocatorSystem.DataAccessor;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace StolenVehicleLocatorSystem.Api
 {
@@ -34,6 +35,7 @@ namespace StolenVehicleLocatorSystem.Api
                 serializerOptions.IgnoreNullValues = true;
                 serializerOptions.IgnoreReadOnlyProperties = false;
                 serializerOptions.WriteIndented = true;
+                serializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
             });
 
             // Adding Authentication
@@ -43,7 +45,7 @@ namespace StolenVehicleLocatorSystem.Api
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-
+            
             // Adding Jwt Bearer
             .AddJwtBearer(options =>
             {

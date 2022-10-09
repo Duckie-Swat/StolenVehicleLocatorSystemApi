@@ -13,5 +13,17 @@
             public const int MinLenghCharactersForText = 5;
             public const int MaxLenghCharactersForText = 25;
         }
+
+        public static class LatitudeRule
+        {
+            public const double MinValue = -90;
+            public const double MaxValue = 90;
+        }
+
+        public static class LongtitudeRule
+        {
+            public const double MinValue = -180;
+            public const double MaxValue = 180;
+        }
     }
 }

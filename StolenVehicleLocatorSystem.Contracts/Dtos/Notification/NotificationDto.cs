@@ -1,6 +1,7 @@
 ﻿using StolenVehicleLocatorSystem.Contracts.Dtos.User;
 using StolenVehicleLocatorSystem.DataAccessor.Enums;
 using System.ComponentModel.DataAnnotations;
+using static StolenVehicleLocatorSystem.Contracts.Constants.ValidationRules;
 
 namespace StolenVehicleLocatorSystem.Contracts.Dtos.Notification
 {
@@ -9,11 +10,11 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.Notification
         public Guid Id { get; set; }
 
         [Required]
-        [MaxLength(Constants.ValidationRules.CommonRules.MaxLenghCharactersForText)]
-        [MinLength(Constants.ValidationRules.CommonRules.MinLenghCharactersForText)]
+        [MaxLength(CommonRules.MaxLenghCharactersForText)]
+        [MinLength(CommonRules.MinLenghCharactersForText)]
         public string Title { get; set; }
 
-        [MaxLength(Constants.ValidationRules.CommonRules.MaxLenghCharactersForText)]
+        [MaxLength(CommonRules.MaxLenghCharactersForText)]
         public string Description { get; set; }
         public NotificationTypeEnum Type { get; set; }
 

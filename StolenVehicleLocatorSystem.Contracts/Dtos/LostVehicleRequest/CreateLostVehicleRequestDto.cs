@@ -1,6 +1,7 @@
 ﻿using StolenVehicleLocatorSystem.Contracts.Attributes;
 using StolenVehicleLocatorSystem.DataAccessor.Constants;
 using System.ComponentModel.DataAnnotations;
+using static StolenVehicleLocatorSystem.Contracts.Constants.ValidationRules;
 
 namespace StolenVehicleLocatorSystem.Contracts.Dtos.LostVehicleRequest
 {
@@ -8,15 +9,17 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.LostVehicleRequest
     {
         public Guid UserId { get; set; }
 
-        [MinLength(Constants.ValidationRules.PlateNumberRule.MinLenghCharactersForText)]
-        [MaxLength(Constants.ValidationRules.PlateNumberRule.MaxLenghCharactersForText)]
+        [MinLength(PlateNumberRule.MinLenghCharactersForText)]
+        [MaxLength(PlateNumberRule.MaxLenghCharactersForText)]
         public string PlateNumber { get; set; }
 
-        [MaxLength(Constants.ValidationRules.CommonRules.MaxLenghCharactersForText)]
+        [MaxLength(CommonRules.MaxLenghCharactersForText)]
         public string VehicleType { get; set; }
 
+        [Range(minimum: LatitudeRule.MinValue, maximum: LatitudeRule.MaxValue)]
         public double Latitude { get; set; }
 
+        [Range(minimum: LongtitudeRule.MinValue, maximum: LongtitudeRule.MaxValue)]
         public double Longitude { get; set; }
 
         public string Location { get; set; }

@@ -8,6 +8,7 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
     {
         Task<CameraDetectedResultDto> CreateAsync(CreateCameraDetectedResultDto createCameraDetectedResultDto);
         Task<PagedResponseModel<CameraDetectedResultDto>> PagedQueryAsync(BaseSearch filters);
+        Task<PagedResponseModel<CameraDetectedResultDto>> PagedQueryGroupByPlateNumberByUserIdAsync(BaseSearch filters, Guid userId);
         Task<PagedResponseModel<CameraDetectedResultDto>> PagedQueryAsyncByCameraId(BaseSearch filters, Guid cameraId);
         Task SoftRemoveOne(Guid id);
         Task HardRemoveOne(Guid id);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,6 +10,8 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Interfaces
     public interface IBaseRepository<T> where T : class
     {
         IQueryable<T> Entities { get; }
+
+        DbSet<T> Dbset { get; }
 
         Task<T> GetByIdAsync(object id);
 

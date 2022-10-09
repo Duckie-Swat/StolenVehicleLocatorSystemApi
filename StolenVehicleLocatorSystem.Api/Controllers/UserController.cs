@@ -330,7 +330,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         }
 
         /// <summary>
-        /// soft remove a notificatio based on  user id and cameraId
+        /// soft remove a notification based on  user id and cameraId
         /// </summary>
         /// <param name="cameraId"></param>
         /// <returns></returns>
@@ -350,7 +350,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             ================================================================================
         */
         /// <summary>
-        /// List cameras of current user
+        /// List lost vehicle requests of current user
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
@@ -369,15 +369,26 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 
          */
         /// <summary>
-        /// List camera detected result by cameraId of current user
+        /// List camera detected results by cameraId of current user
         /// </summary>
         /// <param name="cameraId"></param>
         /// <param name="filter"></param>
         /// <returns></returns>
-        [HttpGet("my-account/cameras/{cameraId}/camera-detected-result/find")]
+        [HttpGet("my-account/cameras/{cameraId}/camera-detected-results/find")]
         public async Task<IActionResult> FindPagedCameraDetectedResultsByCameraIdFromCurrentUser(Guid cameraId, [FromQuery] BaseSearch filter)
         {
             return Ok(await _cameraDetectedResultService.PagedQueryAsyncByCameraId(filter, cameraId));
+        }
+        /// <summary>
+        /// List camera detected results by  current user
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        [HttpGet("my-account/camera-detected-results/find")]
+        public async Task<IActionResult> FindPagedCameraDetectedResultsByFromCurrentUser([FromQuery] BaseSearch filter)
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!;
+            return Ok(await _cameraDetectedResultService.PagedQueryGroupByPlateNumberByUserIdAsync(filter, Guid.Parse(userId)));
         }
     }
 }

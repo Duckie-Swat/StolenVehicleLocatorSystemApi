@@ -20,6 +20,8 @@ namespace StolenVehicleLocatorSystem.DataAccessor.Repositories
 
         public IQueryable<T> Entities => _dbContext.Set<T>();
 
+        public DbSet<T> Dbset => _dbContext.Set<T>();
+
         public async Task<T> AddAsync(T entity)
         {
             await _dbContext.Set<T>().AddAsync(entity);

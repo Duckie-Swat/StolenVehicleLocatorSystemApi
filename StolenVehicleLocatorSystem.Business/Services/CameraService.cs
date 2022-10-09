@@ -101,7 +101,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             {
                 query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
             }
-
+            query = query.Include(c => c.CameraDetectedResults);
             var cameras = await query.PaginateAsync(filter.Page, filter.Limit);
             return new PagedResponseModel<CameraDto>
             {

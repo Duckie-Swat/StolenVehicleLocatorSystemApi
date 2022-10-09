@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using StolenVehicleLocatorSystem.Business.Extensions;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts;
@@ -16,16 +17,22 @@ namespace StolenVehicleLocatorSystem.Business.Services
     {
         private readonly IMapper _mapper;
         private readonly IBaseRepository<CameraDetectedResult> _cameraDetectedResult;
+        private readonly IBaseRepository<Camera> _camera;
         private readonly ICameraService _cameraService;
+        private readonly IBaseRepository<LostVehicleRequest> _lostVehicleRequest;
 
-        public CameraDetectedResultService(IMapper mapper,
+        public CameraDetectedResultService(IMapper mapper, 
             IBaseRepository<CameraDetectedResult> cameraDetectedResult,
-            ICameraService cameraService
+            IBaseRepository<Camera> camera, 
+            ICameraService cameraService,
+            IBaseRepository<LostVehicleRequest> lostVehicleRequest
             )
         {
             _mapper = mapper;
             _cameraDetectedResult = cameraDetectedResult;
+            _camera = camera;
             _cameraService = cameraService;
+            _lostVehicleRequest = lostVehicleRequest;
         }
 
         public async Task<CameraDetectedResultDto> CreateAsync(CreateCameraDetectedResultDto createCameraDetectedResultDto)
@@ -90,6 +97,34 @@ namespace StolenVehicleLocatorSystem.Business.Services
                 Items = _mapper.Map<IEnumerable<CameraDetectedResultDto>>(cameraDetectedResults.Items),
                 TotalPages = cameraDetectedResults.TotalPages
             };
+        }
+
+        public async Task<PagedResponseModel<CameraDetectedResultDto>> PagedQueryGroupByPlateNumberByUserIdAsync(BaseSearch filter, Guid userId)
+        {
+
+            var query = _cameraDetectedResult.Entities;
+
+            var dbset = _cameraDetectedResult.Dbset;
+
+            query = dbset.FromSqlRaw($"select cdr.\"Id\", cdr.\"CameraId\", cdr.\"Latitude\", cdr.\"Longitude\", cdr.\"Location\", cdr.\"Photo\", cdr.\"CreatedAt\", cdr.\"LastUpdatedAt\", cdr.\"CreatedBy\", cdr.\"LastUpdatedBy\", cdr.\"DeletedBy\", cdr.\"IsDeleted\", cdr.\"LostVehicleRequestId\", cdr.\"PlateNumber\" from \"CameraDetectedResult\" cdr, \"LostVehicleRequests\" lvr where cdr.\"LostVehicleRequestId\" = lvr.\"Id\" and lvr.\"UserId\" = uuid('{userId}') and cdr.\"CreatedAt\" in (select max(cdr2.\"CreatedAt\") from \"CameraDetectedResult\" cdr2, \"LostVehicleRequests\" lvr2 where cdr2.\"LostVehicleRequestId\" = lvr2.\"Id\" and lvr2.\"UserId\" = uuid('{userId}') group by cdr2.\"PlateNumber\")");
+            
+
+            query = query.Include(c => c.LostVehicleRequest);
+
+            // filter
+            query = query.Where(user => filter.IsDeleted == null
+                        || user.IsDeleted == filter.IsDeleted);
+
+          
+            var cameraDetectedResults = await query.PaginateAsync(filter.Page, filter.Limit);
+            return new PagedResponseModel<CameraDetectedResultDto>
+            {
+                CurrentPage = filter.Page,
+                TotalItems = cameraDetectedResults.TotalItems,
+                Items = _mapper.Map<IEnumerable<CameraDetectedResultDto>>(cameraDetectedResults.Items),
+                TotalPages = cameraDetectedResults.TotalPages
+            };
+
         }
 
         public async Task SoftRemoveOne(Guid id)
