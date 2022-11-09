@@ -15,7 +15,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using static System.Net.Mime.MediaTypeNames;
+
 
 namespace StolenVehicleLocatorSystem.Business.Services
 {
@@ -73,55 +73,60 @@ namespace StolenVehicleLocatorSystem.Business.Services
         public async Task<TokenResponse> Login(LoginUserDto loginUser)
         {
             var user = await _userManager.FindByEmailAsync(loginUser.Email);
-            if(user != null) { 
-                if(user.IsDeleted)
+
+            if (user != null)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (user.IsDeleted)
                     throw new HttpStatusException(HttpStatusCode.Forbidden, "This user deleted. Please contact admin to solve this problem.");
-                if(!(await VerifyGoogleRecaptcha(new VerifyCaptchaModel
+                
+                if (!(await VerifyGoogleRecaptcha(new VerifyCaptchaModel
                 {
                     Response = loginUser.ResponseCaptchaToken,
                     Secret = _configuration["ExternalProviders:Google:RecaptchaV2SecretKey"]
-                })))
+                })) && !roles.Any(x => x == "Admin")
+                )
                 {
                     throw new BadRequestException("Recaptcha code is not valid or expire");
                 }
                 if (await _userManager.CheckPasswordAsync(user, loginUser.Password))
+                {
+                    var authClaims = await _userManager.GetClaimsAsync(user);
+                    _ = double.TryParse(_configuration["JWT:TokenValidityInMinutes"], out double tokenValidityInMinutes);
+                    var token = _tokenService.CreateAccessToken(authClaims, tokenValidityInMinutes);
+                    var refreshToken = _tokenService.GenerateRefreshToken();
+
+                    _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
+
+                    var userToken = new CreateUserTokenDto
                     {
-                        var authClaims = await _userManager.GetClaimsAsync(user);
-                        _ = double.TryParse(_configuration["JWT:TokenValidityInMinutes"], out double tokenValidityInMinutes);
-                        var token = _tokenService.CreateAccessToken(authClaims, tokenValidityInMinutes);
-                        var refreshToken = _tokenService.GenerateRefreshToken();
+                        RefreshToken = refreshToken,
+                        Platform = "Test",
+                        RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays),
+                        UserId = user.Id
+                    };
+                    await _userTokenService.CreateUserToken(userToken);
 
-                        _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInDays"], out int refreshTokenValidityInDays);
+                    return new TokenResponse
+                    {
 
-                        var userToken = new CreateUserTokenDto
+                        RefreshToken = refreshToken,
+                        AccessToken = _jwtSecurityTokenHandler.WriteToken(token),
+                        AccessTokenExpiration = token.ValidTo,
+                        RefreshTokenExpiration = userToken.RefreshTokenExpiryTime,
+                        User = new
                         {
-                            RefreshToken = refreshToken,
-                            Platform = "Test",
-                            RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(refreshTokenValidityInDays),
-                            UserId = user.Id
-                        };
-                        await _userTokenService.CreateUserToken(userToken);
-
-                        return new TokenResponse
-                        {
-
-                            RefreshToken = refreshToken,
-                            AccessToken = _jwtSecurityTokenHandler.WriteToken(token),
-                            AccessTokenExpiration = token.ValidTo,
-                            RefreshTokenExpiration = userToken.RefreshTokenExpiryTime,
-                            User = new
-                            {
-                                user.Id,
-                                DisplayName = user.FirstName + " " + user.LastName,
-                                user.FirstName,
-                                user.LastName,
-                                user.Email,
-                                user.PhoneNumber,
-                                user.DateOfBirth
-                            }
-                        };
-                    }
+                            user.Id,
+                            DisplayName = user.FirstName + " " + user.LastName,
+                            user.FirstName,
+                            user.LastName,
+                            user.Email,
+                            user.PhoneNumber,
+                            user.DateOfBirth
+                        }
+                    };
                 }
+            }
 
             throw new BadRequestException("username or password is not correct");
         }
@@ -155,7 +160,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
             if (newUserResult.Errors.Any())
             {
-                throw new BadRequestException(string.Join(',',newUserResult.Errors.Select(e => e.Description)));
+                throw new BadRequestException(string.Join(',', newUserResult.Errors.Select(e => e.Description)));
             }
 
             var authClaims = new List<Claim>
@@ -211,7 +216,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             bool digit = options.RequireDigit;
             bool lowercase = options.RequireLowercase;
             bool uppercase = options.RequireUppercase;
-            
+
             StringBuilder password = new StringBuilder();
             Random random = new Random();
 
@@ -264,14 +269,14 @@ namespace StolenVehicleLocatorSystem.Business.Services
         public async Task ChangePassword(string email, string oldPassword, string newPassword)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if(user == null)
+            if (user == null)
                 throw new BadRequestException("User doesn't exist");
-            if(await _userManager.CheckPasswordAsync(user, oldPassword))
+            if (await _userManager.CheckPasswordAsync(user, oldPassword))
             {
                 if (oldPassword == newPassword)
                     throw new BadRequestException("New password shouldn't be the same with old password");
                 var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
-                if(result.Errors.Any())
+                if (result.Errors.Any())
                 {
                     throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
                 }
@@ -292,7 +297,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
         public async Task SendResetPasswordAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            
+
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
 
             var emailSubject = "Reset your password";

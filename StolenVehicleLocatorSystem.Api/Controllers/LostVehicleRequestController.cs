@@ -9,7 +9,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 {
     [Route(Endpoints.LostVehicleRequest)]
     [ApiController]
-    [Authorize]
     public class LostVehicleRequestController : ControllerBase
     {
         private readonly ILostVehicleRequestService _lostVehicleRequestService;
@@ -25,7 +24,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("find")]
-        [Authorize(Roles = RoleTypes.Admin)]
         public async Task<IActionResult> FindPagedLostVehicleRequests([FromQuery] BaseSearch filter)
         {
             return Ok(await _lostVehicleRequestService.PagedQueryAsync(filter));
