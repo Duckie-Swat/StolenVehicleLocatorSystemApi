@@ -51,7 +51,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
         {
             var query = _lostVehicleRequest.Entities;
             query = query.Where(request => string.IsNullOrEmpty(filter.Keyword)
-                        || request.PlateNumber.Contains(filter.Keyword));
+                        || request.Location.Contains(filter.Keyword));
             // filter
             query = query.Where(user => filter.IsDeleted == null
                         || user.IsDeleted == filter.IsDeleted);
