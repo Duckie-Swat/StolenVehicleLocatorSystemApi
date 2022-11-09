@@ -44,6 +44,12 @@ namespace StolenVehicleLocatorSystem.Business.Services
             return _mapper.Map<CameraDetectedResultDto>(await _cameraDetectedResult.AddAsync(cameraDetectedResult));
         }
 
+        public async Task<IEnumerable<CameraDetectedResultDto>> CreateListAsync(IEnumerable<CreateCameraDetectedResultDto> createListCameraDetectedResultDto)
+        {
+            var cameraDetectResults = await _cameraDetectedResult.AddRangeAsync(_mapper.Map<IEnumerable<CameraDetectedResult>>(createListCameraDetectedResultDto));
+            return _mapper.Map<IEnumerable<CameraDetectedResultDto>>(cameraDetectResults);
+        }
+
         public async Task HardRemoveOne(Guid id)
         {
             throw new NotImplementedException();

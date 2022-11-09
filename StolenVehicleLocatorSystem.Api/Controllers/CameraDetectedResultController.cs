@@ -9,7 +9,6 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 {
     [Route(Endpoints.CameraDetectedResult)]
     [ApiController]
-    [Authorize]
     public class CameraDetectedResultController : ControllerBase
     {
         private readonly ICameraDetectedResultService _cameraDetectedResultService;
@@ -42,6 +41,21 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         {
 
             var cameraDetectedResultDto = await _cameraDetectedResultService.CreateAsync(createCameraDetectedResultDto);
+            return Created(Endpoints.CameraDetectedResult, cameraDetectedResultDto);
+        }
+
+        /// <summary>
+        /// Create new Camera Detected Result
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        [HttpPost("List")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateListCameraDetectedResult(IEnumerable<CreateCameraDetectedResultDto> createListCameraDetectedResultDto)
+        {
+
+            var cameraDetectedResultDto = await _cameraDetectedResultService.CreateListAsync(createListCameraDetectedResultDto);
             return Created(Endpoints.CameraDetectedResult, cameraDetectedResultDto);
         }
     }
