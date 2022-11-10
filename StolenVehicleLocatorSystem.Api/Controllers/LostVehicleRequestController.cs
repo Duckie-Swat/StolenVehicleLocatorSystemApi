@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using IdentityModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using StolenVehicleLocatorSystem.Business.Interfaces;
 using StolenVehicleLocatorSystem.Contracts.Constants;
@@ -35,10 +36,13 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="createLostVehicleRequestDto"></param>
         /// <returns></returns>
         [HttpPost]
+        [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateLostVehicleRequest(CreateLostVehicleRequestDto createLostVehicleRequestDto)
         {
+            var userId = User.Claims.FirstOrDefault(x => x.Type == JwtClaimTypes.Id)?.Value;
+            createLostVehicleRequestDto.UserId = Guid.Parse(userId!);
             await _lostVehicleRequestService.CreateAsync(createLostVehicleRequestDto);
             return Created(Endpoints.LostVehicleRequest, null);
         }

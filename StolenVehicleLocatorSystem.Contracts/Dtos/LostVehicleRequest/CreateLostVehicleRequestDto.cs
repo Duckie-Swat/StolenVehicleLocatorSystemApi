@@ -7,6 +7,7 @@ namespace StolenVehicleLocatorSystem.Contracts.Dtos.LostVehicleRequest
 {
     public class CreateLostVehicleRequestDto
     {
+        [SwaggerIgnore]
         public Guid UserId { get; set; }
 
         [MinLength(PlateNumberRule.MinLenghCharactersForText)]
