@@ -8,6 +8,7 @@ using StolenVehicleLocatorSystem.Contracts.Dtos.Camera;
 using StolenVehicleLocatorSystem.Contracts.Dtos.User;
 using StolenVehicleLocatorSystem.Contracts.Exceptions;
 using StolenVehicleLocatorSystem.Contracts.Filters;
+using StolenVehicleLocatorSystem.DataAccessor.Constants;
 using StolenVehicleLocatorSystem.DataAccessor.Entities;
 using System.Security.Claims;
 
@@ -26,7 +27,8 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         private readonly ILostVehicleRequestService _lostVehicleRequestService;
         private readonly ICameraDetectedResultService _cameraDetectedResultService;
 
-        public UserController(IUserService userService,
+        public UserController(
+            IUserService userService,
             UserManager<User> userManager,
             INotificationSerivce notificationSerivce,
             ICameraService cameraService,
@@ -361,8 +363,21 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
             return Ok(await _lostVehicleRequestService.PagedQueryAsyncByUserId(filter, currentUserId));
         }
 
+        /// <summary>
+        /// Update status lost vehicle request by id from current user 
+        /// </summary>
+        /// <param name="lostVehicleRequestId"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        [HttpPatch("my-account/lost-vehicle-requests/{lostVehicleRequestId}/status")]
+        public async Task<IActionResult> MarkLostVehicleRequestStatus(Guid lostVehicleRequestId, [FromQuery] LostVehicleRequestStatus status)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value!);
+            await _lostVehicleRequestService.MarkStatusAsync(lostVehicleRequestId, currentUserId, status);
+            return Ok();
+        }
         /* 
-         
+
             ============================== CameraDetectedResult ==============================
             ==================================================================================
             ==================================================================================

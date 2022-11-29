@@ -28,7 +28,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
         public async Task<LostVehicleRequestDto> CreateAsync(CreateLostVehicleRequestDto createLostVehicleRequest)
         {
             var query = _lostVehicleRequest.Entities;
-            if(query.Any(req => req.PlateNumber == createLostVehicleRequest.PlateNumber && req.Status == LostVehicleRequestStatus.PROCESSING))
+            if (query.Any(req => req.PlateNumber == createLostVehicleRequest.PlateNumber && req.Status == LostVehicleRequestStatus.PROCESSING))
                 throw new BadRequestException("This vehicle has already procced");
             var newLostVehicleRequest = _mapper.Map<LostVehicleRequest>(createLostVehicleRequest);
             return _mapper.Map<LostVehicleRequestDto>(await _lostVehicleRequest.AddAsync(newLostVehicleRequest));
@@ -47,7 +47,16 @@ namespace StolenVehicleLocatorSystem.Business.Services
             await _lostVehicleRequest.DeleteAsync(lostRequestVehicle.Id);
         }
 
-        public async Task<PagedResponseModel<LostVehicleRequestDto>> PagedQueryAsync(BaseSearch filter)
+        public async Task MarkStatusAsync(Guid id, Guid userId, LostVehicleRequestStatus status)
+        {
+            var lostRequestVehicle = await _lostVehicleRequest.Entities.FirstOrDefaultAsync(e => e.Id == id && e.UserId == userId);
+            if (lostRequestVehicle == null)
+                throw new HttpStatusException(HttpStatusCode.NotFound, "This request doesn't exist");
+            lostRequestVehicle.Status = status;
+            await _lostVehicleRequest.UpdateAsync(lostRequestVehicle);
+        }
+
+        public async Task<PagedResponseModel<LostVehicleRequestDto>> PagedQueryAsync(LostVehicleRequestSearch filter)
         {
             var query = _lostVehicleRequest.Entities;
             query = query.Where(request => string.IsNullOrEmpty(filter.Keyword)
@@ -55,6 +64,9 @@ namespace StolenVehicleLocatorSystem.Business.Services
             // filter
             query = query.Where(user => filter.IsDeleted == null
                         || user.IsDeleted == filter.IsDeleted);
+
+            query = query.Where(request => filter.Status == null
+                        || request.Status == filter.Status);
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {

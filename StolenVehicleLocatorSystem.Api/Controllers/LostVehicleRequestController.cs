@@ -25,13 +25,13 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpGet("find")]
-        public async Task<IActionResult> FindPagedLostVehicleRequests([FromQuery] BaseSearch filter)
+        public async Task<IActionResult> FindPagedLostVehicleRequests([FromQuery] LostVehicleRequestSearch filter)
         {
             return Ok(await _lostVehicleRequestService.PagedQueryAsync(filter));
         }
 
         /// <summary>
-        /// 
+        /// Create new lost vehicle request
         /// </summary>
         /// <param name="createLostVehicleRequestDto"></param>
         /// <returns></returns>

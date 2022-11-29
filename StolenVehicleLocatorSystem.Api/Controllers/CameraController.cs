@@ -14,7 +14,7 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
     public class CameraController : ControllerBase
     {
         private readonly ICameraService _cameraService;
-        
+
         public CameraController(ICameraService cameraService)
         {
             _cameraService = cameraService;
