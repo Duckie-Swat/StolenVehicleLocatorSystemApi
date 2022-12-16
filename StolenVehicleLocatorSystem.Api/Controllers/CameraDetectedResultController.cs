@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using IdentityModel;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using StolenVehicleLocatorSystem.Api.Hubs;
@@ -20,15 +18,22 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
         private readonly INotificationSerivce _notificationSerivce;
         private readonly IHubContext<NotificationHub> _notificationHubContext;
 
+        private readonly IUserService _userService;
+        private readonly ILostVehicleRequestService _lostVehicleRequestService;
+
         public CameraDetectedResultController(
             ICameraDetectedResultService cameraDetectedResultService,
             INotificationSerivce notificationSerivce,
-            IHubContext<NotificationHub> notificationHubContext
+            IHubContext<NotificationHub> notificationHubContext,
+            ILostVehicleRequestService lostVehicleRequestService,
+            IUserService userService
             )
         {
             _cameraDetectedResultService = cameraDetectedResultService;
             _notificationSerivce = notificationSerivce;
             _notificationHubContext = notificationHubContext;
+            _lostVehicleRequestService = lostVehicleRequestService;
+            _userService = userService;
         }
 
         /// <summary>
@@ -55,18 +60,20 @@ namespace StolenVehicleLocatorSystem.Api.Controllers
 
             var cameraDetectedResultDto = await _cameraDetectedResultService.CreateAsync(createCameraDetectedResultDto);
 
-            // Notify to user
-            var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var userId = User.Claims.FirstOrDefault(c => c.Type == JwtClaimTypes.Id)?.Value;
+            // Notify to user has lost vehicle
+            var lostVehicleRequest = await _lostVehicleRequestService.GetByIdAsync(createCameraDetectedResultDto.LostVehicleRequestId);
+            var user = await _userService.GetByIdAsync(lostVehicleRequest.UserId);
+            var email = user.Email;
+
             var createNotificationDto = new CreateNotificationDto
             {
                 Title = "Found your vehicle",
                 Description = $"Your vehicle has been found by camera {createCameraDetectedResultDto.CameraId}",
-                UserId = Guid.Parse(userId!)
+                UserId = user.Id
             };
-            createNotificationDto.UserId = Guid.Parse(userId!);
+            createNotificationDto.UserId = user.Id;
             var notification = await _notificationSerivce.CreateAsync(createNotificationDto);
-            await _notificationHubContext.Clients.Users(email!).SendAsync("SendNotification", notification);
+            _notificationHubContext.Clients.Users(email!).SendAsync("SendNotification", notification);
             return Created(Endpoints.CameraDetectedResult, cameraDetectedResultDto);
         }
 

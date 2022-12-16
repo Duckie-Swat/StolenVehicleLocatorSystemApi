@@ -34,6 +34,14 @@ namespace StolenVehicleLocatorSystem.Business.Services
             return _mapper.Map<LostVehicleRequestDto>(await _lostVehicleRequest.AddAsync(newLostVehicleRequest));
         }
 
+        public async Task<LostVehicleRequestDto> GetByIdAsync(Guid id)
+        {
+            var lostVehicleRequest = await _lostVehicleRequest.Entities.FirstOrDefaultAsync(e => e.Id == id);
+            if (lostVehicleRequest == null)
+                throw new HttpStatusException(HttpStatusCode.NotFound, "This request doesn't exist");
+            return _mapper.Map<LostVehicleRequestDto>(lostVehicleRequest);
+        }
+
         public async Task HardRemoveAll(Guid userId)
         {
             throw new NotImplementedException();

@@ -11,6 +11,8 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
 
         Task<UserDetailDto> GetByEmail(string email);
 
+        Task<UserDetailDto> GetByIdAsync(Guid id);
+
         Task<PagedResponseModel<UserDetailDto>> PagedQueryAsync(UserSearch filters);
 
         Task UpdateUserAsync(string email, UpdateUserDto updateUserRequest, Guid updateBy);

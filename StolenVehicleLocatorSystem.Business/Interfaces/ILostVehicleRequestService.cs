@@ -8,6 +8,7 @@ namespace StolenVehicleLocatorSystem.Business.Interfaces
     public interface ILostVehicleRequestService
     {
         Task<LostVehicleRequestDto> CreateAsync(CreateLostVehicleRequestDto createLostVehicleRequest);
+        Task<LostVehicleRequestDto> GetByIdAsync(Guid id);
         Task<PagedResponseModel<LostVehicleRequestDto>> PagedQueryAsync(LostVehicleRequestSearch filters);
         Task<PagedResponseModel<LostVehicleRequestDto>> PagedQueryAsyncByUserId(BaseSearch filters, Guid userId);
         Task MarkStatusAsync(Guid id, Guid userId, LostVehicleRequestStatus status);

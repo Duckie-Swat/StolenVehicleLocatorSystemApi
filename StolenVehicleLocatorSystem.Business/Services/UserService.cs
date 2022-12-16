@@ -51,7 +51,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             var query = _userManager.Users;
             // search
             query = query.Where(user => string.IsNullOrEmpty(filter.Keyword)
-                        || user.Id.ToString().Contains(filter.Keyword) 
+                        || user.Id.ToString().Contains(filter.Keyword)
                         || user.Email.Contains(filter.Keyword)
                         );
             // filter
@@ -60,7 +60,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
             if (!string.IsNullOrEmpty(filter.OrderProperty) && filter.Desc != null)
             {
-                if(filter.OrderProperty.ToLower() == "fullname")
+                if (filter.OrderProperty.ToLower() == "fullname")
                 {
                     if (filter.Desc == true)
                         query = query.OrderByDescending(q => q.FirstName)
@@ -69,12 +69,12 @@ namespace StolenVehicleLocatorSystem.Business.Services
                         query = query.OrderBy(q => q.FirstName).ThenBy(q => q.LastName);
 
                 }
-                else 
+                else
                     query = query.OrderByPropertyName(filter.OrderProperty, (bool)filter.Desc);
             }
-          
+
             var paginatedUsers = await query.PaginateAsync(filter.Page, filter.Limit);
-            
+
             var users = _mapper.Map<IList<UserDetailDto>>(paginatedUsers.Items);
 
             // Add role to user detail
@@ -169,7 +169,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
 
         public async Task SoftRemoveMany(Guid[] userIds)
         {
-            List<User> users = new ();
+            List<User> users = new();
             foreach (Guid id in userIds)
             {
                 var user = await _userManager.FindByIdAsync(id.ToString());
@@ -189,10 +189,10 @@ namespace StolenVehicleLocatorSystem.Business.Services
         public async Task SoftRemoveOne(Guid userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
-            if(user == null)
+            if (user == null)
                 throw new BadRequestException("This user doesn't exist");
             user.IsDeleted = true;
-            var result =  await _userManager.UpdateAsync(user);
+            var result = await _userManager.UpdateAsync(user);
             if (result.Errors.Any())
             {
                 throw new BadRequestException(string.Join(" ", result.Errors.Select(e => e.Description)));
@@ -207,7 +207,7 @@ namespace StolenVehicleLocatorSystem.Business.Services
             user.PhoneNumber = updateUserRequest.PhoneNumber;
             user.DateOfBirth = updateUserRequest.DateOfBirth;
             user.LastUpdatedAt = DateTime.UtcNow;
-            
+
             user.LastUpdatedBy = updateBy;
             var result = await _userManager.UpdateAsync(user);
             if (result.Errors.Any())
@@ -220,6 +220,17 @@ namespace StolenVehicleLocatorSystem.Business.Services
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             return user != null;
+        }
+
+        public async Task<UserDetailDto> GetByIdAsync(Guid id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+                throw new BadRequestException("This user doesn't exist");
+            var userDetail = _mapper.Map<UserDetailDto>(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            userDetail.Roles = roles;
+            return userDetail;
         }
     }
 
